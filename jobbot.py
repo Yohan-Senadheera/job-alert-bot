@@ -250,6 +250,9 @@ def src_career_pages():
 
 SOURCES = [("topjobs", src_topjobs), ("xpress", src_xpress), ("ikman", src_ikman),
            ("linkedin", src_linkedin), ("career pages", src_career_pages)]
+if os.environ.get("GITHUB_ACTIONS"):
+    # xpress.jobs answers 403 to GitHub's cloud servers, so it only works from a home connection
+    SOURCES = [s for s in SOURCES if s[0] != "xpress"]
 
 
 # ---------- telegram ----------

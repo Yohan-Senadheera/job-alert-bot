@@ -2,7 +2,7 @@
   "_note": "Each profile has its own keywords and Telegram recipients (send_to = env var names holding chat ids). Matching is on job title, case-insensitive, whole words.",
   "profiles": {
     "pavani": {
-      "label": "👩 For Pavani",
+      "label": "🟪🟪 PAVANI",
       "send_to": [
         "CHAT_PAVANI",
         "CHAT_YOHAN"
@@ -242,7 +242,7 @@
       ]
     },
     "yohan": {
-      "label": "👨 For Yohan",
+      "label": "🟦🟦 YOHAN",
       "send_to": [
         "CHAT_YOHAN"
       ],
