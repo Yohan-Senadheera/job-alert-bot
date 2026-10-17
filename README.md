@@ -28,3 +28,10 @@ layout changed), the bot says so in Telegram.
 
 To alert more than one person, put several chat ids in `TELEGRAM_CHAT_ID`, separated by commas.
 `.env` holds the bot token, so keep it private.
+
+## Cloud schedule
+The bot runs on GitHub Actions. GitHub's own `schedule` is unreliable (it often skips runs), so
+cron-job.org calls the `workflow_dispatch` API every 30 minutes, using a fine-grained token limited
+to Actions on this repo. The GitHub schedule stays on as a backup, and `concurrency` stops two runs
+from overlapping. **The token expires on 15 Jan 2027**: make a new one and paste it into the
+cron-job.org job before then.
