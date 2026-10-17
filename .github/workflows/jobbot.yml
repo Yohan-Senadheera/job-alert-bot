@@ -1,0 +1,58 @@
+name: job-alerts
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"   # every 30 minutes (GitHub may start a few minutes late)
+    - cron: "0 3 1 * *"      # monthly keepalive commit, so GitHub does not pause the schedule
+  workflow_dispatch:
+
+concurrency:
+  group: jobbot
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  poll:
+    if: github.event.schedule != '0 3 1 * *'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - run: pip install -r requirements.txt
+      - name: Restore sent-jobs state
+        uses: actions/cache/restore@v4
+        with:
+          path: seen.json
+          key: seen-${{ github.run_id }}
+          restore-keys: seen-
+      - name: Check job sites
+        run: python jobbot.py
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          CHAT_YOHAN: ${{ secrets.CHAT_YOHAN }}
+          CHAT_PAVANI: ${{ secrets.CHAT_PAVANI }}
+      - name: Save sent-jobs state
+        if: always() && hashFiles('seen.json') != ''
+        uses: actions/cache/save@v4
+        with:
+          path: seen.json
+          key: seen-${{ github.run_id }}-${{ github.run_attempt }}
+
+  keepalive:
+    if: github.event.schedule == '0 3 1 * *'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          date -u > .keepalive
+          git config user.name "jobbot"
+          git config user.email "jobbot@users.noreply.github.com"
+          git add .keepalive
+          git commit -m "keepalive" && git push
