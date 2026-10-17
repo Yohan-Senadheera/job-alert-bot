@@ -183,15 +183,25 @@ def src_ikman():
     return out
 
 
+LI_STATE = {"offset": 0}
+
+
 def src_linkedin():
+    # LinkedIn rate-limits cloud IPs, so each run does a rotating slice of the
+    # searches; with "past week" results nothing is missed between slices.
     out = []
-    for q in union("linkedin_queries"):
+    qs = union("linkedin_queries")
+    n = CFG.get("linkedin_per_run", 8)
+    start = LI_STATE["offset"] % len(qs)
+    batch = (qs + qs)[start:start + n]
+    LI_STATE["offset"] = start + n
+    for q in batch:
         url = ("https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search"
                f"?keywords={quote_plus(q)}&location=Sri%20Lanka&f_TPR=r604800&start=0")
         r = S.get(url, timeout=30)
         if r.status_code != 200:
             log(f"linkedin '{q}' -> HTTP {r.status_code}")
-            time.sleep(10)
+            time.sleep(15)
             continue
         soup = BeautifulSoup(r.text, "html.parser")
         for card in soup.select("div.base-card"):
@@ -212,7 +222,7 @@ def src_linkedin():
                 "url": (a["href"].split("?")[0] if a else f"https://www.linkedin.com/jobs/view/{jid}"),
                 "source": "LinkedIn",
             })
-        time.sleep(4)
+        time.sleep(6)
     return out
 
 
@@ -326,6 +336,7 @@ def save_seen(st):
 
 def run(dry=False):
     st = load_seen()
+    LI_STATE["offset"] = st.get("li_offset", 0)
     now = time.time()
     jobs, checked = [], 0
     for name, fn in SOURCES:
@@ -398,6 +409,7 @@ def run(dry=False):
              f"Sources with errors: {html.escape(broken)}.")
         st["last_summary"] = today
         st["today_count"] = 0
+    st["li_offset"] = LI_STATE["offset"]
     save_seen(st)
 
 
