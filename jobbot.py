@@ -22,6 +22,8 @@ from urllib.parse import quote_plus
 import requests
 from bs4 import BeautifulSoup
 
+import fit
+
 HERE = Path(__file__).resolve().parent
 CFG = json.loads((HERE / "config.json").read_text(encoding="utf-8"))
 SEEN_FILE = HERE / "seen.json"
@@ -42,7 +44,7 @@ def log(msg):
 
 def load_env():
     # GitHub Actions passes these as environment variables; locally they come from .env
-    env = {k: v for k, v in os.environ.items() if k.startswith(("TELEGRAM_", "CHAT_"))}
+    env = {k: v for k, v in os.environ.items() if k.startswith(("TELEGRAM_", "CHAT_", "GEMINI_"))}
     p = HERE / ".env"
     if p.exists():
         for ln in p.read_text(encoding="utf-8").splitlines():
@@ -286,7 +288,7 @@ def send(text, env_names=("CHAT_YOHAN", "CHAT_PAVANI")):
             time.sleep(1.1)
 
 
-def fmt(job, level, label):
+def fmt(job, level, label, f=None):
     e = html.escape
     star = " ⭐" if level == "strong" else ""
     lines = [f"<b>{e(label)}</b>{star}", f"<b>{e(job['title'])}</b>"]
@@ -296,7 +298,9 @@ def fmt(job, level, label):
         lines.append(f"\U0001f4cd {e(job['location'])}")
     if job.get("closing"):
         lines.append(f"⏳ Closes: {e(job['closing'])}")
-    lines.append(f"\U0001f517 <a href=\"{e(job['url'])}\">Open on {e(job['source'])}</a>")
+    if f:
+        lines.append(e(fit.fit_line(f)))
+    lines.append(f"\U0001f517 <a href=\"{e(job['url'])}\">Open the job post ({e(job['source'])})</a>")
     return "\n".join(lines)
 
 
@@ -372,8 +376,13 @@ def run(dry=False):
             send(f"👋 <b>{html.escape(prof.label)}: job alerts are live.</b> Here are the "
                  f"{min(len(matches), cap)} matching roles open right now. After this, only new ones.",
                  prof.send_to)
-        for j, lvl in matches[:cap]:
-            send(fmt(j, lvl, prof.label), prof.send_to)
+        top = matches[:cap]
+        gcfg = CFG["gemini"]
+        items = [(j, *fit.describe(S, j, gcfg["max_desc_chars"])) for j, _ in top]
+        fits = fit.score(CFG["profiles"][prof.key], items, st, ENV.get("GEMINI_API_KEY"), gcfg,
+                         lambda m: send(m, ("CHAT_YOHAN",)), log)
+        for (j, lvl), f in sorted(zip(top, fits), key=lambda x: -x[1]["fit"]):
+            send(fmt(j, lvl, prof.label, f), prof.send_to)
         if len(matches) > cap:
             send(f"{html.escape(prof.label)}: ... and {len(matches) - cap} more matches this round.",
                  prof.send_to)

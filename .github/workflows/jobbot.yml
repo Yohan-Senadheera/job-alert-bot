@@ -38,6 +38,7 @@ jobs:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           CHAT_YOHAN: ${{ secrets.CHAT_YOHAN }}
           CHAT_PAVANI: ${{ secrets.CHAT_PAVANI }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       - name: Save sent-jobs state
         if: always() && hashFiles('seen.json') != ''
         uses: actions/cache/save@v4

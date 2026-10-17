@@ -239,6 +239,47 @@
         "globe",
         "singtel",
         "telecom"
+      ],
+      "summary": "Final-year Electrical & Electronic Engineering undergraduate, University of Peradeniya. RF Optimization & Planning intern at Hutch Sri Lanka since Apr 2026 (KPI analysis, interference, femto cells, capacity/TRX and microwave transmission planning, ZTE/Huawei RAN tools). Knows LTE, RF, 5G fundamentals and 5G core (Open5GS private 5G testbed), CCNA 1-3 (routing, VLANs, ACLs, STP), SDN/Mininet, Python, Linux. Wants entry-level networking or telecom engineer roles in Sri Lanka; no full-time experience yet.",
+      "skills": [
+        "rf",
+        "lte",
+        "4g",
+        "5g",
+        "radio",
+        "optimization",
+        "optimisation",
+        "planning",
+        "kpi",
+        "drive test",
+        "tems",
+        "transmission",
+        "microwave",
+        "femto",
+        "ran",
+        "huawei",
+        "zte",
+        "u2020",
+        "netnumen",
+        "netmax",
+        "qgis",
+        "ccna",
+        "routing",
+        "switching",
+        "vlan",
+        "tcp/ip",
+        "ip",
+        "sdn",
+        "core network",
+        "open5gs",
+        "wireshark",
+        "python",
+        "linux",
+        "fiber",
+        "fibre",
+        "noc",
+        "telecom",
+        "network"
       ]
     },
     "yohan": {
@@ -359,7 +400,38 @@
         "SDQ",
         "HNS"
       ],
-      "career_pages": {}
+      "career_pages": {},
+      "summary": "Computer Engineering graduate (2026), University of Peradeniya. SRE intern at WSO2 Apr-Oct 2026: multi-cloud CI/CD on Argo, PKI certificate automation. Skills: Kubernetes (AKS, EKS, k3s), Docker, Terraform, Helm, Azure DevOps, GitHub Actions, GitOps, AWS, Azure, Prometheus/Grafana, Linux, Bash, Python, networking (CCNA 1-3), private 5G project. Wants SRE, DevOps, cloud or platform roles; under 1 year of experience.",
+      "skills": [
+        "kubernetes",
+        "k8s",
+        "docker",
+        "terraform",
+        "helm",
+        "argo",
+        "gitops",
+        "ci/cd",
+        "azure devops",
+        "github actions",
+        "jenkins",
+        "aws",
+        "azure",
+        "gcp",
+        "prometheus",
+        "grafana",
+        "observability",
+        "linux",
+        "bash",
+        "python",
+        "sre",
+        "devops",
+        "cloud",
+        "networking",
+        "ccna",
+        "pki",
+        "iam",
+        "security"
+      ]
     }
   },
   "exclude_locations": [
@@ -393,5 +465,15 @@
     "pakistan"
   ],
   "max_alerts_per_run": 40,
-  "daily_summary_hour": 20
+  "daily_summary_hour": 20,
+  "gemini": {
+    "_note": "Fit scoring with Google Gemini free tier. Models tried in order. Falls back to keyword scoring when quota runs out or the API fails.",
+    "models": [
+      "gemini-flash-lite-latest",
+      "gemini-2.5-flash-lite",
+      "gemini-2.0-flash-lite"
+    ],
+    "batch_size": 8,
+    "max_desc_chars": 1200
+  }
 }
