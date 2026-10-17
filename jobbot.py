@@ -421,6 +421,24 @@ if __name__ == "__main__":
     a = sys.argv[1:]
     if "--setup" in a:
         setup()
+    elif "--fit-test" in a:
+        # score two real ads with Gemini and send them to Yohan, to check the key works
+        samples = [("yohan", {"id": "linkedin:4477036862", "title": "DevOps Engineer - AI", "company": "IFS",
+                              "location": "Colombo", "url": "https://lk.linkedin.com/jobs/view/4477036862",
+                              "source": "LinkedIn"}),
+                   ("pavani", {"id": "topjobs:0001559455", "title": "Engineer - Enterprise Fiber Planning",
+                               "company": "Hutch", "location": "Colombo 4",
+                               "url": "https://www.topjobs.lk/employer/JobAdvertismentServlet?ac=DEFZZZ&jc=0001559455&ec=DEFZZZ",
+                               "source": "topjobs"})]
+        st = {}
+        for key, j in samples:
+            prof = next(p for p in PROFILES if p.key == key)
+            item = (j, *fit.describe(S, j, CFG["gemini"]["max_desc_chars"]))
+            f = fit.score(CFG["profiles"][key], [item], st, ENV.get("GEMINI_API_KEY"), CFG["gemini"],
+                          lambda m: send(m, ("CHAT_YOHAN",)), log)[0]
+            log(f"fit-test {key}: {f}")
+            send(fmt(j, "strong", prof.label, f) + "
+<i>(fit test)</i>", ("CHAT_YOHAN",))
     elif "--test" in a:
         send("✅ Job bot test message. Alerts will arrive here.")
         print("sent")

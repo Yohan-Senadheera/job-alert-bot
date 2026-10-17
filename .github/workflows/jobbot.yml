@@ -5,6 +5,10 @@ on:
     - cron: "*/30 * * * *"   # every 30 minutes (GitHub may start a few minutes late)
     - cron: "0 3 1 * *"      # monthly keepalive commit, so GitHub does not pause the schedule
   workflow_dispatch:
+    inputs:
+      mode:
+        description: "poll = normal run, fit-test = score two sample jobs with Gemini"
+        default: poll
 
 concurrency:
   group: jobbot
@@ -33,7 +37,7 @@ jobs:
           key: seen-${{ github.run_id }}
           restore-keys: seen-
       - name: Check job sites
-        run: python jobbot.py
+        run: python jobbot.py ${{ inputs.mode == 'fit-test' && '--fit-test' || '' }}
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           CHAT_YOHAN: ${{ secrets.CHAT_YOHAN }}
