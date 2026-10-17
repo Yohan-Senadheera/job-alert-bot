@@ -437,8 +437,7 @@ if __name__ == "__main__":
             f = fit.score(CFG["profiles"][key], [item], st, ENV.get("GEMINI_API_KEY"), CFG["gemini"],
                           lambda m: send(m, ("CHAT_YOHAN",)), log)[0]
             log(f"fit-test {key}: {f}")
-            send(fmt(j, "strong", prof.label, f) + "
-<i>(fit test)</i>", ("CHAT_YOHAN",))
+            send(fmt(j, "strong", prof.label, f) + "\n<i>(fit test)</i>", ("CHAT_YOHAN",))
     elif "--test" in a:
         send("✅ Job bot test message. Alerts will arrive here.")
         print("sent")
