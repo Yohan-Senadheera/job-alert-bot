@@ -137,7 +137,11 @@ def src_topjobs():
 def src_xpress():
     out = []
     for page in range(1, 41):
-        r = S.get(f"https://xpress.jobs/api/jobs/searchJobs?page={page}", timeout=30)
+        r = S.get(f"https://xpress.jobs/api/jobs/searchJobs?page={page}", timeout=30,
+                  headers={"Accept": "application/json, text/plain, */*",
+                           "Referer": "https://xpress.jobs/jobs"})
+        if "json" not in r.headers.get("content-type", ""):
+            raise RuntimeError(f"HTTP {r.status_code} {r.headers.get('content-type')} {r.text[:120]!r}")
         data = r.json()
         if not data:
             break
