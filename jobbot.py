@@ -73,6 +73,7 @@ class Profile:
         self.role = _rx(p["company_role_words"])
         self.excl = _rx(p["exclude_title_words"])
         self.career_names = set(p.get("career_pages", {}))
+        self.caution = _rx(p.get("caution_words", []))
 
     def classify(self, job):
         """Return 'strong', 'general' or None for this person."""
@@ -83,13 +84,14 @@ class Profile:
         where = (job.get("location", "") + " " + title).lower()
         if any_hit(self.excl, title) or any_hit(EXCL_LOC, where):
             return None
-        if any_hit(self.strong, title):
-            return "strong"
-        if any_hit(self.companies, comp) and any_hit(self.role, title):
-            return "strong"
-        if any_hit(self.general, title):
-            return "general"
-        return None
+        lvl = None
+        if any_hit(self.strong, title) or (any_hit(self.companies, comp) and any_hit(self.role, title)):
+            lvl = "strong"
+        elif any_hit(self.general, title):
+            lvl = "general"
+        if lvl and any_hit(self.caution, title):
+            lvl = "caution"  # still sent, but last and flagged (site visits / shifts likely)
+        return lvl
 
 
 PROFILES = [Profile(k, v) for k, v in CFG["profiles"].items()]
@@ -300,7 +302,7 @@ def send(text, env_names=("CHAT_YOHAN", "CHAT_PAVANI")):
 
 def fmt(job, level, label, f=None):
     e = html.escape
-    star = " ⭐" if level == "strong" else ""
+    star = {"strong": " ⭐", "caution": " 🚧"}.get(level, "")
     lines = [f"<b>{e(label)}</b>{star}", f"<b>{e(job['title'])}</b>"]
     if job.get("company"):
         lines.append(f"\U0001f3e2 {e(job['company'])}")
@@ -310,6 +312,8 @@ def fmt(job, level, label, f=None):
         lines.append(f"⏳ Closes: {e(job['closing'])}")
     if f:
         lines.append(e(fit.fit_line(f)))
+    if level == "caution":
+        lines.append("🚧 May involve site visits, field work or shifts. Check the ad.")
     lines.append(f"\U0001f517 <a href=\"{e(job['url'])}\">Open the job post ({e(job['source'])})</a>")
     return "\n".join(lines)
 
@@ -376,7 +380,7 @@ def run(dry=False):
             if j.get("career") and intro:
                 continue  # career pages: the first run only records the baseline
             matches.append((j, lvl))
-        matches.sort(key=lambda x: x[1] != "strong")
+        matches.sort(key=lambda x: {"strong": 0, "general": 1, "caution": 2}[x[1]])
         total += len(matches)
         log(f"{prof.key}: {len(matches)} new matches")
         if dry:
@@ -392,7 +396,8 @@ def run(dry=False):
         items = [(j, *fit.describe(S, j, gcfg["max_desc_chars"])) for j, _ in top]
         fits = fit.score(CFG["profiles"][prof.key], items, st, ENV.get("GEMINI_API_KEY"), gcfg,
                          lambda m: send(m, ("CHAT_YOHAN",)), log)
-        for (j, lvl), f in sorted(zip(top, fits), key=lambda x: -x[1]["fit"]):
+        order = {"strong": 0, "general": 1, "caution": 2}
+        for (j, lvl), f in sorted(zip(top, fits), key=lambda x: (order[x[0][1]], -x[1]["fit"])):
             send(fmt(j, lvl, prof.label, f), prof.send_to)
         if len(matches) > cap:
             send(f"{html.escape(prof.label)}: ... and {len(matches) - cap} more matches this round.",

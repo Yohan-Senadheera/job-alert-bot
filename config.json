@@ -83,11 +83,18 @@
         "network design",
         "network architect associate",
         "spectrum",
-        "regulatory",
         "trcsl",
         "technical consultant",
         "network consultant",
-        "network data analyst"
+        "network data analyst",
+        "network administrator",
+        "junior network",
+        "network & systems",
+        "network and systems",
+        "systems & network",
+        "it infrastructure",
+        "network security administrator",
+        "network support"
       ],
       "general_keywords": [
         "network",
@@ -97,7 +104,14 @@
         "open5gs",
         "data analyst - telecom",
         "python - network",
-        "noc analyst"
+        "noc analyst",
+        "noc",
+        "drive test",
+        "technical officer - network",
+        "technical officer - transmission",
+        "technical officer - service operations",
+        "in-building",
+        "ibs"
       ],
       "company_role_words": [
         "engineer",
@@ -113,7 +127,9 @@
         "performance",
         "automation",
         "solutions",
-        "pre-sales"
+        "pre-sales",
+        "technical officer",
+        "noc"
       ],
       "exclude_title_words": [
         "senior",
@@ -210,28 +226,7 @@
         "bank",
         "banking",
         "distribution network",
-        "dealer network",
-        "site engineer",
-        "field engineer",
-        "field",
-        "drive test",
-        "drive tester",
-        "rollout",
-        "roll-out",
-        "installation",
-        "installer",
-        "rigger",
-        "tower",
-        "shift",
-        "24x7",
-        "24/7",
-        "night",
-        "noc engineer",
-        "noc operator",
-        "technical officer",
-        "maintenance engineer",
-        "outside plant",
-        "osp"
+        "dealer network"
       ],
       "linkedin_queries": [
         "network engineer",
@@ -286,7 +281,7 @@
         "singtel",
         "telecom"
       ],
-      "summary": "Final-year Electrical & Electronic Engineering undergraduate, University of Peradeniya. RF Optimization & Planning intern at Hutch Sri Lanka since Apr 2026 (KPI analysis, interference, femto cells, capacity/TRX and microwave transmission planning, ZTE/Huawei RAN tools). Knows LTE, RF, 5G fundamentals and 5G core (Open5GS private 5G testbed), CCNA 1-3 (routing, VLANs, ACLs, STP), SDN/Mininet, Python, Linux. Wants entry-level networking or telecom engineer roles in Sri Lanka; no full-time experience yet. Prefers office-based, day-shift roles: avoid jobs that need frequent tower/site visits, field work, drive testing, night shifts or 24x7 rotations (score these low and say so in gap).",
+      "summary": "Final-year Electrical & Electronic Engineering undergraduate, University of Peradeniya. RF Optimization & Planning intern at Hutch Sri Lanka since Apr 2026 (KPI analysis, interference, femto cells, capacity/TRX and microwave transmission planning, ZTE/Huawei RAN tools). Knows LTE, RF, 5G fundamentals and 5G core (Open5GS private 5G testbed), CCNA 1-3 (routing, VLANs, ACLs, STP), SDN/Mininet, Python, Linux. Wants entry-level networking or telecom engineer roles in Sri Lanka; no full-time experience yet. Prefers office-based, day-time roles (enterprise network admin/engineer, network performance/KPI analysis, automation, presales/solutions, planning). Jobs needing frequent tower/site visits, field work, night shifts or 24x7 rotations are still possible but less preferred: score them 2 points lower and mention it in gap.",
       "skills": [
         "rf",
         "lte",
@@ -326,6 +321,30 @@
         "noc",
         "telecom",
         "network"
+      ],
+      "caution_words": [
+        "site engineer",
+        "field engineer",
+        "field",
+        "drive test",
+        "drive tester",
+        "rollout",
+        "roll-out",
+        "installation",
+        "installer",
+        "rigger",
+        "tower",
+        "shift",
+        "24x7",
+        "24/7",
+        "night",
+        "noc engineer",
+        "noc operator",
+        "noc",
+        "technical officer",
+        "maintenance engineer",
+        "outside plant",
+        "osp"
       ]
     },
     "yohan": {
