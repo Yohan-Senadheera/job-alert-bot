@@ -83,11 +83,18 @@
         "network design",
         "network architect associate",
         "spectrum",
-        "regulatory",
         "trcsl",
         "technical consultant",
         "network consultant",
-        "network data analyst"
+        "network data analyst",
+        "network administrator",
+        "junior network",
+        "network & systems",
+        "network and systems",
+        "systems & network",
+        "it infrastructure",
+        "network security administrator",
+        "network support"
       ],
       "general_keywords": [
         "network",
@@ -97,7 +104,14 @@
         "open5gs",
         "data analyst - telecom",
         "python - network",
-        "noc analyst"
+        "noc analyst",
+        "noc",
+        "drive test",
+        "technical officer - network",
+        "technical officer - transmission",
+        "technical officer - service operations",
+        "in-building",
+        "ibs"
       ],
       "company_role_words": [
         "engineer",
@@ -113,7 +127,9 @@
         "performance",
         "automation",
         "solutions",
-        "pre-sales"
+        "pre-sales",
+        "technical officer",
+        "noc"
       ],
       "exclude_title_words": [
         "senior",
@@ -210,28 +226,7 @@
         "bank",
         "banking",
         "distribution network",
-        "dealer network",
-        "site engineer",
-        "field engineer",
-        "field",
-        "drive test",
-        "drive tester",
-        "rollout",
-        "roll-out",
-        "installation",
-        "installer",
-        "rigger",
-        "tower",
-        "shift",
-        "24x7",
-        "24/7",
-        "night",
-        "noc engineer",
-        "noc operator",
-        "technical officer",
-        "maintenance engineer",
-        "outside plant",
-        "osp"
+        "dealer network"
       ],
       "linkedin_queries": [
         "network engineer",
@@ -326,6 +321,30 @@
         "noc",
         "telecom",
         "network"
+      ],
+      "caution_words": [
+        "site engineer",
+        "field engineer",
+        "field",
+        "drive test",
+        "drive tester",
+        "rollout",
+        "roll-out",
+        "installation",
+        "installer",
+        "rigger",
+        "tower",
+        "shift",
+        "24x7",
+        "24/7",
+        "night",
+        "noc engineer",
+        "noc operator",
+        "noc",
+        "technical officer",
+        "maintenance engineer",
+        "outside plant",
+        "osp"
       ]
     },
     "yohan": {
