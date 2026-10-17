@@ -20,15 +20,19 @@ YEARS = re.compile(r"(\d{1,2})\s*\+?\s*(?:-|to)?\s*\d{0,2}\s*\+?\s*years?", re.I
 
 # ---------- job description text / image ----------
 
-REQ = re.compile(r"requirement|qualification|what you|you will need|you have|skills|experience|responsibilit", re.I)
+REQ = [re.compile(w, re.I) for w in
+       (r"requirements?", r"qualifications?", r"what you('ll| will)? (need|bring)", r"you will need",
+        r"key responsibilities", r"what you('ll| will) do", r"skills")]
 
 
 def focus(text, n):
     """Cut the ad down to n characters, starting where the requirements begin
     (ads often open with a long company introduction)."""
-    m = REQ.search(text)
-    if m and m.start() > n // 3:
-        text = text[m.start():]
+    for rx in REQ:
+        m = rx.search(text)
+        if m and m.start() > n // 3:
+            text = text[m.start():]
+            break
     return text[:n]
 
 
