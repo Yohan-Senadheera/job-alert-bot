@@ -571,7 +571,7 @@
   },
   "quiet_hours": {
     "_note": "Sri Lanka time. Runs starting in this window exit straight away.",
-    "from": 0,
-    "to": 5
+    "from": 1,
+    "to": 6
   }
 }
