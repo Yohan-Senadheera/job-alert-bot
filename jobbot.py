@@ -23,6 +23,7 @@ import requests
 from bs4 import BeautifulSoup
 
 import fit
+import sources_extra as extra
 
 HERE = Path(__file__).resolve().parent
 CFG = json.loads((HERE / "config.json").read_text(encoding="utf-8"))
@@ -356,7 +357,10 @@ def src_career_pages():
 
 SOURCES = [("topjobs", src_topjobs), ("xpress", src_xpress), ("ikman", src_ikman),
            ("linkedin", src_linkedin), ("dialog", src_dialog), ("mobitel", src_mobitel),
-           ("slt", src_slt), ("career pages", src_career_pages)]
+           ("slt", src_slt), ("career pages", src_career_pages),
+           ("gazette", lambda: extra.gazette(S)),
+           ("workday", lambda: extra.workday(S, CFG.get("workday_portals", {}))),
+           ("wso2", lambda: extra.wso2(S)), ("ericsson", lambda: extra.ericsson(S))]
 if os.environ.get("GITHUB_ACTIONS"):
     # xpress.jobs answers 403 to GitHub's cloud servers, so it only works from a home connection
     SOURCES = [s for s in SOURCES if s[0] != "xpress"]
@@ -376,7 +380,8 @@ def tg(method, **params):
     return r.json()
 
 
-LISTING_SOURCES = {"Dialog careers", "Mobitel careers", "SLT careers"}
+LISTING_SOURCES = {"Dialog careers", "Mobitel careers", "SLT careers", "LSEG careers", "WSO2 careers",
+                   "Ericsson careers"}
 
 
 def is_listing_page(job):
