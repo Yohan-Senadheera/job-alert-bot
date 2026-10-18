@@ -117,7 +117,15 @@ def any_hit(rxs, text):
 def src_topjobs():
     out = []
     for fa in union("topjobs_categories"):
-        r = S.get(f"https://www.topjobs.lk/applicant/vacancybyfunctionalarea.jsp?FA={fa}", timeout=30)
+        url = f"https://www.topjobs.lk/applicant/vacancybyfunctionalarea.jsp?FA={fa}"
+        for attempt in range(3):  # topjobs is sometimes slow in the evening
+            try:
+                r = S.get(url, timeout=60)
+                break
+            except requests.exceptions.RequestException:
+                if attempt == 2:
+                    raise
+                time.sleep(10)
         soup = BeautifulSoup(r.text, "html.parser")
         for tr in soup.find_all("tr", onclick=re.compile("createAlert")):
             m = re.search(r"createAlert\('\d+','(\w+)','(\d+)','(\w+)'", tr["onclick"])
