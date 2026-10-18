@@ -568,5 +568,10 @@
     ],
     "batch_size": 8,
     "max_desc_chars": 1200
+  },
+  "quiet_hours": {
+    "_note": "Sri Lanka time. Runs starting in this window exit straight away.",
+    "from": 0,
+    "to": 5
   }
 }
