@@ -21,8 +21,8 @@ YEARS = re.compile(r"(\d{1,2})\s*\+?\s*(?:-|to)?\s*\d{0,2}\s*\+?\s*years?", re.I
 # ---------- job description text / image ----------
 
 REQ = [re.compile(w, re.I) for w in
-       (r"requirements?", r"qualifications?", r"what you('ll| will)? (need|bring)", r"you will need",
-        r"key responsibilities", r"what you('ll| will) do", r"skills")]
+       (r"requirements?\b", r"qualifications?\b", r"what you('ll| will)? (need|bring)", r"you will need",
+        r"key responsibilities", r"what you('ll| will) do", r"\bskills\b")]
 
 
 def focus(text, n):
@@ -40,6 +40,13 @@ def describe(session, job, max_chars):
     """Return (text, image) for a job; either may be empty. Never raises."""
     max_chars *= 4  # keyword scoring reads the whole ad; Gemini gets focus()
     try:
+        if job.get("desc"):
+            return job["desc"][:max_chars], None
+        if job.get("image_url"):
+            im = session.get(job["image_url"], timeout=20)
+            if im.ok and len(im.content) < 1_500_000:
+                return "", (im.headers.get("content-type", "image/jpeg").split(";")[0], im.content)
+            return "", None
         src = job["source"]
         if src == "LinkedIn":
             jid = job["id"].split(":", 1)[1]

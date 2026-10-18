@@ -74,18 +74,24 @@ class Profile:
         self.excl = _rx(p["exclude_title_words"])
         self.career_names = set(p.get("career_pages", {}))
         self.caution = _rx(p.get("caution_words", []))
+        self.priority = _rx(p.get("priority_keywords", []))
 
     def classify(self, job):
-        """Return 'strong', 'general' or None for this person."""
-        if job.get("career"):
-            return "strong" if job["company"] in self.career_names else None
+        """Return 'top', 'strong', 'general', 'caution' or None for this person."""
+        if job.get("career") and job["company"] not in self.career_names:
+            return None
         title = job["title"].lower()
         comp = job.get("company", "").lower()
         where = (job.get("location", "") + " " + title).lower()
         if any_hit(self.excl, title) or any_hit(EXCL_LOC, where):
             return None
         lvl = None
-        if any_hit(self.strong, title) or (any_hit(self.companies, comp) and any_hit(self.role, title)):
+        if job.get("career"):
+            # a new job-like line on a company careers page: alert unless excluded above
+            return "top" if any_hit(self.priority, title) else "strong"
+        if any_hit(self.priority, title):
+            lvl = "top"  # this person's first-choice field (e.g. datacom for Pavani)
+        elif any_hit(self.strong, title) or (any_hit(self.companies, comp) and any_hit(self.role, title)):
             lvl = "strong"
         elif any_hit(self.general, title):
             lvl = "general"
@@ -236,7 +242,81 @@ def src_linkedin():
     return out
 
 
-JOBWORDS = re.compile(r"engineer|trainee|intern|graduate|vacanc|career|opportunit|executive|officer", re.I)
+JOBWORDS = re.compile(r"\b(engineer|executive|officer|manager|analyst|specialist|intern|trainee|associate|"
+                      r"technician|consultant|administrator|developer|lead|coordinator|architect)\b", re.I)
+NOT_JOB = re.compile(r"@|https?:|resume|degree in|diploma in|qualification|identify|generate|responsib", re.I)
+
+
+DIALOG_PORTAL = "https://hcmcloud.dialog.lk/CareerPortal/Careers?q=bEopnWmcv9llMiBG3zygOw%3D%3D"
+
+
+def src_dialog():
+    """Dialog's own career portal (MiHCM): every vacancy with closing date and description."""
+    r = S.get(DIALOG_PORTAL, timeout=40)
+    soup = BeautifulSoup(r.text, "html.parser")
+    out = []
+    for d in soup.select("div.hcm-jpp-job"):
+        name = d.select_one(".hcm-jpp-name")
+        if not name:
+            continue
+        loc = d.select_one(".hcm-jpp-location")
+        close = d.select(".hcm-jpp-closing_date span")
+        desc = d.find("input", id="hcm-jpp-description")
+        text = BeautifulSoup(desc["value"], "html.parser").get_text(" ", strip=True) if desc else ""
+        out.append({
+            "id": f"dialog:{d.get('data-rrf-code') or d.get('data-id')}",
+            "title": name.get_text(" ", strip=True),
+            "company": (d.select_one(".hcm-jpp-company") or name).get_text(" ", strip=True),
+            "location": loc.get_text(" ", strip=True) if loc else "",
+            "closing": close[-1].get_text(strip=True) if close else "",
+            "url": DIALOG_PORTAL,
+            "source": "Dialog careers",
+            "desc": text,
+        })
+    return out
+
+
+def src_mobitel():
+    """mobitel.lk/careers lists each vacancy as a heading followed by the advert image."""
+    r = S.get("https://www.mobitel.lk/careers", timeout=40)
+    soup = BeautifulSoup(r.text, "html.parser")
+    out = []
+    for h in soup.find_all("h6"):
+        title = h.get_text(" ", strip=True)
+        img = h.find_next("img")
+        if not title or not img or not img.get("src"):
+            continue
+        src = requests.compat.urljoin("https://www.mobitel.lk/", img["src"])
+        out.append({
+            "id": "mobitel:" + hashlib.sha1(title.lower().encode()).hexdigest()[:16],
+            "title": title.title(),
+            "company": "SLT-Mobitel (Mobitel)",
+            "location": "",
+            "closing": "",
+            "url": src,  # the advert image itself is the job post
+            "source": "Mobitel careers",
+            "image_url": src,
+        })
+    return out
+
+
+def src_slt():
+    """careers.slt.lk: SLT-Mobitel's application portal, one link per open intake."""
+    r = S.get("https://careers.slt.lk/", timeout=40)
+    soup = BeautifulSoup(r.text, "html.parser")
+    out = []
+    for a in soup.select("a.joblink"):
+        title = a.get_text(" ", strip=True)
+        out.append({
+            "id": "slt:" + hashlib.sha1(a.get("href", title).encode()).hexdigest()[:16],
+            "title": title.title(),
+            "company": "SLT-Mobitel (SLT)",
+            "location": "",
+            "closing": "",
+            "url": requests.compat.urljoin("https://careers.slt.lk/", a.get("href", "")),
+            "source": "SLT careers",
+        })
+    return out
 
 
 def src_career_pages():
@@ -244,14 +324,18 @@ def src_career_pages():
     text lines and links on each page; a line not seen before is an alert."""
     out = []
     for name, url in union("career_pages"):
-        r = S.get(url, timeout=30)
+        try:
+            r = S.get(url, timeout=30)
+        except requests.exceptions.RequestException as ex:
+            log(f"career page {name}: {type(ex).__name__}, skipped this run")
+            continue  # one broken site must not stop the other career pages
         soup = BeautifulSoup(r.text, "html.parser")
         for t in soup(["script", "style", "noscript", "nav", "footer", "header"]):
             t.decompose()
         seen_here = set()
-        for el in soup.find_all(["a", "h1", "h2", "h3", "h4", "li", "td"]):
+        for el in soup.find_all(["a", "h1", "h2", "h3", "h4", "h5", "h6", "li", "td", "strong", "p", "span"]):
             txt = el.get_text(" ", strip=True)
-            if not (8 <= len(txt) <= 120) or not JOBWORDS.search(txt) or txt in seen_here:
+            if not (8 <= len(txt) <= 90) or not JOBWORDS.search(txt) or NOT_JOB.search(txt) or txt in seen_here:
                 continue
             seen_here.add(txt)
             link = el.get("href") if el.name == "a" else None
@@ -271,7 +355,8 @@ def src_career_pages():
 
 
 SOURCES = [("topjobs", src_topjobs), ("xpress", src_xpress), ("ikman", src_ikman),
-           ("linkedin", src_linkedin), ("career pages", src_career_pages)]
+           ("linkedin", src_linkedin), ("dialog", src_dialog), ("mobitel", src_mobitel),
+           ("slt", src_slt), ("career pages", src_career_pages)]
 if os.environ.get("GITHUB_ACTIONS"):
     # xpress.jobs answers 403 to GitHub's cloud servers, so it only works from a home connection
     SOURCES = [s for s in SOURCES if s[0] != "xpress"]
@@ -289,6 +374,13 @@ def tg(method, **params):
         r = requests.post(f"https://api.telegram.org/bot{tok}/{method}", data=params, timeout=30)
     r.raise_for_status()
     return r.json()
+
+
+LISTING_SOURCES = {"Dialog careers", "Mobitel careers", "SLT careers"}
+
+
+def is_listing_page(job):
+    return job.get("career") or job["source"] in LISTING_SOURCES
 
 
 def chats_for(env_names):
@@ -310,7 +402,7 @@ def send(text, env_names=("CHAT_YOHAN", "CHAT_PAVANI")):
 
 def fmt(job, level, label, f=None):
     e = html.escape
-    star = {"strong": " ⭐", "caution": " 🚧"}.get(level, "")
+    star = {"top": " ⭐⭐", "strong": " ⭐", "caution": " 🚧"}.get(level, "")
     lines = [f"<b>{e(label)}</b>{star}", f"<b>{e(job['title'])}</b>"]
     if job.get("company"):
         lines.append(f"\U0001f3e2 {e(job['company'])}")
@@ -351,6 +443,7 @@ def run(dry=False):
     LI_STATE["offset"] = st.get("li_offset", 0)
     now = time.time()
     jobs, checked = [], 0
+    base_done = set(st.get("base_done", []))
     for name, fn in SOURCES:
         try:
             got = fn()
@@ -367,6 +460,7 @@ def run(dry=False):
                 send(f"⚠️ Job bot: source <b>{html.escape(name)}</b> has failed 6 runs in a row "
                      "(site layout may have changed).", ("CHAT_YOHAN",))
 
+    sources_ok = {j["source"] for j in jobs}
     cap = CFG["max_alerts_per_run"]
     total = 0
     for prof in PROFILES:
@@ -376,6 +470,7 @@ def run(dry=False):
         sent = st["sent"].setdefault(prof.key, {})
         intro = not sent  # first run for this person: send what is open now
         matches = []
+        digest = {}
         for j in jobs:
             # dedupe on id and on title+company (same job posted on several sites)
             k = "t:" + re.sub(r"\W+", "", (j["title"] + j.get("company", "")).lower())
@@ -385,10 +480,25 @@ def run(dry=False):
             if not lvl:
                 continue
             sent[j["id"]] = sent[k] = now
-            if j.get("career") and intro:
-                continue  # career pages: the first run only records the baseline
+            if is_listing_page(j) and f"{prof.key}|{j['source']}" not in base_done:
+                # first check of a company careers page: its old adverts go in one summary
+                digest.setdefault(j["source"], []).append((j, lvl))
+                continue
             matches.append((j, lvl))
-        matches.sort(key=lambda x: {"strong": 0, "general": 1, "caution": 2}[x[1]])
+        matches.sort(key=lambda x: {"top": -1, "strong": 0, "general": 1, "caution": 2}[x[1]])
+        for src in sources_ok:
+            if src in LISTING_SOURCES or src.endswith("careers page"):
+                base_done.add(f"{prof.key}|{src}")
+        if not dry:
+            for src, items in digest.items():
+                items.sort(key=lambda x: {"top": -1, "strong": 0, "general": 1, "caution": 2}[x[1]])
+                lines = [f"<b>{html.escape(prof.label)}</b>",
+                         f"📋 Roles already listed on <b>{html.escape(src)}</b> (first check, so this "
+                         "can include older adverts). From now on only new ones are alerted:"]
+                for j, lvl in items[:25]:
+                    star = "⭐⭐ " if lvl == "top" else ""
+                    lines.append(f"• {star}<a href=\"{html.escape(j['url'])}\">{html.escape(j['title'])}</a>")
+                send("\n".join(lines), prof.send_to)
         total += len(matches)
         log(f"{prof.key}: {len(matches)} new matches")
         if dry:
@@ -404,12 +514,13 @@ def run(dry=False):
         items = [(j, *fit.describe(S, j, gcfg["max_desc_chars"])) for j, _ in top]
         fits = fit.score(CFG["profiles"][prof.key], items, st, ENV.get("GEMINI_API_KEY"), gcfg,
                          lambda m: send(m, ("CHAT_YOHAN",)), log)
-        order = {"strong": 0, "general": 1, "caution": 2}
+        order = {"top": -1, "strong": 0, "general": 1, "caution": 2}
         for (j, lvl), f in sorted(zip(top, fits), key=lambda x: (order[x[0][1]], -x[1]["fit"])):
             send(fmt(j, lvl, prof.label, f), prof.send_to)
         if len(matches) > cap:
             send(f"{html.escape(prof.label)}: ... and {len(matches) - cap} more matches this round.",
                  prof.send_to)
+    st["base_done"] = sorted(base_done)
     log(f"checked {checked}, alerts {total}")
     if dry:
         return
