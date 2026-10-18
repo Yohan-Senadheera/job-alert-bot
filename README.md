@@ -35,3 +35,15 @@ cron-job.org calls the `workflow_dispatch` API every 30 minutes, using a fine-gr
 to Actions on this repo. The GitHub schedule stays on as a backup, and `concurrency` stops two runs
 from overlapping. **The token expires on 15 Jan 2027**: make a new one and paste it into the
 cron-job.org job before then.
+
+## Sources
+Cloud (GitHub Actions): topjobs.lk, LinkedIn, ikman.lk, Dialog / Mobitel / SLT career portals,
+Hutch / Superloop / Lanka Bell career pages, gazette.lk (government and public sector),
+LSEG (Workday), WSO2 and Ericsson Sri Lanka.
+
+Laptop (Task Scheduler "PavaniJobBot", every 30 min while the PC is on): xpress.jobs only,
+because it blocks GitHub's servers. `run.bat` sets `JOBBOT_ONLY=xpress`, which keeps its own
+`seen_xpress.json`. Add `GEMINI_API_KEY=` to `.env` for AI fit scores there too.
+
+A company careers page's first check sends one summary of what is already listed; after that
+only new adverts are alerted.

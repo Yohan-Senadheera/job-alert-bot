@@ -27,7 +27,10 @@ import sources_extra as extra
 
 HERE = Path(__file__).resolve().parent
 CFG = json.loads((HERE / "config.json").read_text(encoding="utf-8"))
-SEEN_FILE = HERE / "seen.json"
+# JOBBOT_ONLY=xpress runs a single source with its own state file. The laptop does
+# this for xpress.jobs, which blocks GitHub's servers; the cloud runs everything else.
+ONLY = os.environ.get("JOBBOT_ONLY", "").strip()
+SEEN_FILE = HERE / (f"seen_{ONLY}.json" if ONLY else "seen.json")
 LOG_FILE = HERE / "jobbot.log"
 SL_TZ = timezone(timedelta(hours=5, minutes=30))
 UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -361,7 +364,9 @@ SOURCES = [("topjobs", src_topjobs), ("xpress", src_xpress), ("ikman", src_ikman
            ("gazette", lambda: extra.gazette(S)),
            ("workday", lambda: extra.workday(S, CFG.get("workday_portals", {}))),
            ("wso2", lambda: extra.wso2(S)), ("ericsson", lambda: extra.ericsson(S))]
-if os.environ.get("GITHUB_ACTIONS"):
+if ONLY:
+    SOURCES = [s for s in SOURCES if s[0] == ONLY]
+elif os.environ.get("GITHUB_ACTIONS"):
     # xpress.jobs answers 403 to GitHub's cloud servers, so it only works from a home connection
     SOURCES = [s for s in SOURCES if s[0] != "xpress"]
 
@@ -380,7 +385,7 @@ def tg(method, **params):
     return r.json()
 
 
-LISTING_SOURCES = {"Dialog careers", "Mobitel careers", "SLT careers", "LSEG careers", "WSO2 careers",
+LISTING_SOURCES = {"xpress.jobs", "Dialog careers", "Mobitel careers", "SLT careers", "LSEG careers", "WSO2 careers",
                    "Ericsson careers"}
 
 
@@ -536,7 +541,7 @@ def run(dry=False):
 
     st["today_count"] = st.get("today_count", 0) + total
     today = datetime.now(SL_TZ).strftime("%Y-%m-%d")
-    if datetime.now(SL_TZ).hour >= CFG["daily_summary_hour"] and st.get("last_summary") != today:
+    if not ONLY and datetime.now(SL_TZ).hour >= CFG["daily_summary_hour"] and st.get("last_summary") != today:
         broken = ", ".join(st["errors"]) or "none"
         send(f"📊 Daily check-in: job bot is running. {st['today_count']} alerts today. "
              f"Sources with errors: {html.escape(broken)}.")
