@@ -439,6 +439,10 @@ def save_seen(st):
 # ---------- main ----------
 
 def run(dry=False):
+    q = CFG.get("quiet_hours")
+    if q and q["from"] <= datetime.now(SL_TZ).hour < q["to"] and not dry:
+        log("quiet hours, skipping this run")
+        return  # nobody reads alerts at night; jobs posted now are picked up at 5 am
     st = load_seen()
     LI_STATE["offset"] = st.get("li_offset", 0)
     now = time.time()
