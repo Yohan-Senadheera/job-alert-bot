@@ -573,5 +573,12 @@
     "_note": "Sri Lanka time. Runs starting in this window exit straight away.",
     "from": 1,
     "to": 6
+  },
+  "workday_portals": {
+    "LSEG": [
+      "lseg.wd3.myworkdayjobs.com",
+      "lseg",
+      "Careers"
+    ]
   }
 }
