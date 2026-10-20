@@ -64,7 +64,8 @@ ENV = load_env()
 # ---------- matching ----------
 
 def _rx(words):
-    return [re.compile(r"(?<![a-z0-9])" + re.escape(w.strip().lower()) + r"(?![a-z0-9])")
+    # an optional trailing "s" so "data communication" also matches "Data Communications"
+    return [re.compile(r"(?<![a-z0-9])" + re.escape(w.strip().lower()) + r"s?(?![a-z0-9])")
             for w in words if w.strip()]
 
 

@@ -205,7 +205,6 @@
         "network marketing",
         "social network",
         "network security sales",
-        "data",
         "charging",
         "billing",
         "branch network",
@@ -233,7 +232,8 @@
         "helper",
         "attendant",
         "representative",
-        "associate - "
+        "associate - ",
+        "data entry"
       ],
       "linkedin_queries": [
         "network engineer",
@@ -373,7 +373,11 @@
         "noc engineer - ip",
         "transport network",
         "backbone",
-        "bgp"
+        "bgp",
+        "data network",
+        "optical",
+        "dwdm",
+        "ip networking"
       ]
     },
     "yohan": {
