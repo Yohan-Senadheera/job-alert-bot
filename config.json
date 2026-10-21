@@ -447,7 +447,7 @@
         "infrastructure",
         "platform",
         "reliability",
-        "systems"
+        "systems engineer"
       ],
       "exclude_title_words": [
         "manager",
@@ -595,6 +595,9 @@
   },
   "recruitee_portals": {
     "Cloud Solutions International": "cloudsolutionsinternational"
+  },
+  "smartrecruiters_portals": {
+    "IFS": "IFS1"
   },
   "remote": {
     "_note": "remote jobs open to Sri Lanka, for one profile; see sources_remote.py for the checks",
