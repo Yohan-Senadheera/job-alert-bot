@@ -420,6 +420,7 @@
         "it operations",
         "technical operations",
         "support engineer - cloud",
+        "server engineer",
         "5g"
       ],
       "telecom_companies": [
@@ -588,5 +589,20 @@
   },
   "successfactors_portals": {
     "GTN": ["career44.sapsf.com", "gtngroupho"]
+  },
+  "careers_page_portals": {
+    "Port City BPO": "https://port-city-bpo.careers-page.com/"
+  },
+  "recruitee_portals": {
+    "Cloud Solutions International": "cloudsolutionsinternational"
+  },
+  "remote": {
+    "_note": "remote jobs open to Sri Lanka, for one profile; see sources_remote.py for the checks",
+    "for": "yohan",
+    "queries": ["site reliability", "devops", "platform engineer", "cloud engineer", "kubernetes", "infrastructure engineer"],
+    "jobicy_tags": ["devops", "sre", "kubernetes", "cloud", "aws"],
+    "max_years": 2,
+    "max_age_days": 21,
+    "block_companies": ["thehivecareers"]
   }
 }

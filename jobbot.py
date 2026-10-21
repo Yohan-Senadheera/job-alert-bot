@@ -24,6 +24,7 @@ from bs4 import BeautifulSoup
 
 import fit
 import sources_extra as extra
+import sources_remote as remote
 
 HERE = Path(__file__).resolve().parent
 CFG = json.loads((HERE / "config.json").read_text(encoding="utf-8"))
@@ -84,6 +85,8 @@ class Profile:
     def classify(self, job):
         """Return 'top', 'strong', 'general', 'caution' or None for this person."""
         if job.get("career") and job["company"] not in self.career_names:
+            return None
+        if job.get("only") and job["only"] != self.key:
             return None
         title = job["title"].lower()
         comp = job.get("company", "").lower()
@@ -365,6 +368,9 @@ SOURCES = [("topjobs", src_topjobs), ("xpress", src_xpress), ("ikman", src_ikman
            ("gazette", lambda: extra.gazette(S)),
            ("workday", lambda: extra.workday(S, CFG.get("workday_portals", {}))),
            ("successfactors", lambda: extra.successfactors(S, CFG.get("successfactors_portals", {}))),
+           ("careers-page.com", lambda: remote.careers_page_com(S, CFG.get("careers_page_portals", {}))),
+           ("recruitee", lambda: remote.recruitee(S, CFG.get("recruitee_portals", {}))),
+           ("remote", lambda: remote.remote(S, CFG["remote"])),
            ("wso2", lambda: extra.wso2(S)), ("ericsson", lambda: extra.ericsson(S))]
 if ONLY:
     SOURCES = [s for s in SOURCES if s[0] == ONLY]
@@ -388,7 +394,9 @@ def tg(method, **params):
 
 
 LISTING_SOURCES = {"xpress.jobs", "Dialog careers", "Mobitel careers", "SLT careers", "LSEG careers", "WSO2 careers",
-                   "Ericsson careers", "Sysco LABS careers", "GTN careers"}
+                   "Ericsson careers", "Sysco LABS careers", "GTN careers", "Port City BPO careers",
+                   "Cloud Solutions International careers", "Himalayas (remote)", "Jobicy (remote)",
+                   "We Work Remotely (remote)"}
 
 
 def is_listing_page(job):
