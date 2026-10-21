@@ -39,7 +39,7 @@ cron-job.org job before then.
 ## Sources
 Cloud (GitHub Actions): topjobs.lk, LinkedIn, ikman.lk, Dialog / Mobitel / SLT career portals,
 Hutch / Superloop / Lanka Bell career pages, gazette.lk (government and public sector),
-LSEG (Workday), WSO2 and Ericsson Sri Lanka.
+LSEG and Sysco LABS (Workday), GTN (SuccessFactors), WSO2 and Ericsson Sri Lanka.
 
 Laptop (Task Scheduler "PavaniJobBot", every 30 min while the PC is on): xpress.jobs only,
 because it blocks GitHub's servers. `run.bat` sets `JOBBOT_ONLY=xpress`, which keeps its own

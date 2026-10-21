@@ -364,6 +364,7 @@ SOURCES = [("topjobs", src_topjobs), ("xpress", src_xpress), ("ikman", src_ikman
            ("slt", src_slt), ("career pages", src_career_pages),
            ("gazette", lambda: extra.gazette(S)),
            ("workday", lambda: extra.workday(S, CFG.get("workday_portals", {}))),
+           ("successfactors", lambda: extra.successfactors(S, CFG.get("successfactors_portals", {}))),
            ("wso2", lambda: extra.wso2(S)), ("ericsson", lambda: extra.ericsson(S))]
 if ONLY:
     SOURCES = [s for s in SOURCES if s[0] == ONLY]
@@ -387,7 +388,7 @@ def tg(method, **params):
 
 
 LISTING_SOURCES = {"xpress.jobs", "Dialog careers", "Mobitel careers", "SLT careers", "LSEG careers", "WSO2 careers",
-                   "Ericsson careers"}
+                   "Ericsson careers", "Sysco LABS careers", "GTN careers"}
 
 
 def is_listing_page(job):
