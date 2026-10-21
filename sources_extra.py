@@ -1,8 +1,10 @@
 """Extra job sources: government vacancies (gazette.lk), company portals on
-Workday (LSEG), WSO2's careers page and Ericsson's Sri Lanka openings."""
+Workday (LSEG, Sysco LABS) and SuccessFactors (GTN), WSO2's careers page and
+Ericsson's Sri Lanka openings."""
 import hashlib
 import html
 import re
+import xml.etree.ElementTree as ET
 
 import requests
 from bs4 import BeautifulSoup
@@ -44,10 +46,16 @@ def workday(session, portals):
     """Workday career sites share one JSON API: /wday/cxs/<tenant>/<site>/jobs."""
     out = []
     for name, (host, tenant, site) in portals.items():
-        r = session.post(f"https://{host}/wday/cxs/{tenant}/{site}/jobs",
-                         json={"appliedFacets": {}, "limit": 20, "offset": 0, "searchText": "Sri Lanka"},
-                         headers={"Accept": "application/json"}, timeout=40)
-        for j in r.json().get("jobPostings", []):
+        posts = []
+        for offset in range(0, 100, 20):  # 20 is the most one call returns
+            r = session.post(f"https://{host}/wday/cxs/{tenant}/{site}/jobs",
+                             json={"appliedFacets": {}, "limit": 20, "offset": offset, "searchText": "Sri Lanka"},
+                             headers={"Accept": "application/json"}, timeout=40)
+            page = r.json().get("jobPostings", [])
+            posts += page
+            if len(page) < 20:
+                break
+        for j in posts:
             if "sri lanka" not in (j.get("locationsText", "") + j.get("externalPath", "")).lower():
                 continue
             out.append({
@@ -56,7 +64,31 @@ def workday(session, portals):
                 "company": name,
                 "location": j.get("locationsText", ""),
                 "closing": "",
-                "url": f"https://{host}/en-US/{site}{j['externalPath']}",
+                # myworkdaysite.com hosts put job pages under /recruiting/<tenant>/<site>
+                "url": (f"https://{host}/recruiting/{tenant}/{site}{j['externalPath']}"
+                        if host.endswith("myworkdaysite.com") else f"https://{host}/en-US/{site}{j['externalPath']}"),
+                "source": f"{name} careers",
+            })
+    return out
+
+
+def successfactors(session, portals):
+    """SuccessFactors career sites give every open job as XML with resultType=XML."""
+    out = []
+    for name, (host, company) in portals.items():
+        r = session.get(f"https://{host}/career",
+                        params={"company": company, "career_ns": "job_listing_summary", "resultType": "XML"},
+                        timeout=40)
+        for j in ET.fromstring(r.content).findall("Job"):
+            req = j.findtext("ReqId", "").strip()
+            out.append({
+                "id": f"sapsf:{company}:{req}",
+                "title": html.unescape(j.findtext("JobTitle", "").strip()),
+                "company": name,
+                "location": "",
+                "closing": "",
+                "url": f"https://{host}/career?company={company}&career_ns=job_listing"
+                       f"&navBarLevel=JOB_SEARCH&career_job_req_id={req}",
                 "source": f"{name} careers",
             })
     return out
