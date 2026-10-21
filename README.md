@@ -39,7 +39,11 @@ cron-job.org job before then.
 ## Sources
 Cloud (GitHub Actions): topjobs.lk, LinkedIn, ikman.lk, Dialog / Mobitel / SLT career portals,
 Hutch / Superloop / Lanka Bell career pages, gazette.lk (government and public sector),
-LSEG and Sysco LABS (Workday), GTN (SuccessFactors), WSO2 and Ericsson Sri Lanka.
+LSEG and Sysco LABS (Workday), GTN (SuccessFactors), WSO2 and Ericsson Sri Lanka, Port City BPO
+(careers-page.com), Cloud Solutions International (Recruitee).
+Remote jobs open to Sri Lanka, for Yohan only (Himalayas, Jobicy, We Work Remotely): each ad is
+checked for worldwide/APAC/Sri Lanka eligibility, country locks, seniority, years asked (max 2)
+and scam signs before it can alert (sources_remote.py).
 
 Laptop (Task Scheduler "PavaniJobBot", every 30 min while the PC is on): xpress.jobs only,
 because it blocks GitHub's servers. `run.bat` sets `JOBBOT_ONLY=xpress`, which keeps its own
