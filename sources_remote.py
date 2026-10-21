@@ -1,5 +1,5 @@
-"""Remote jobs that can be done from Sri Lanka, plus small company portals
-(careers-page.com, Recruitee).
+"""Remote jobs that can be done from Sri Lanka, plus company portals
+(careers-page.com, Recruitee, SmartRecruiters) and the 99x careers page.
 
 Remote boards are full of roles that are remote only inside the US or EU,
 senior roles and the odd scam, so every remote ad is checked before it can
@@ -192,4 +192,47 @@ def recruitee(session, portals):
                 "url": o["careers_url"],
                 "source": f"{name} careers",
             })
+    return out
+
+
+def smartrecruiters(session, portals):
+    out = []
+    for name, company in portals.items():
+        for offset in range(0, 500, 100):
+            r = session.get(f"https://api.smartrecruiters.com/v1/companies/{company}/postings",
+                            params={"limit": 100, "offset": offset, "country": "lk"}, timeout=40)
+            page = r.json().get("content", [])
+            for p in page:
+                out.append({
+                    "id": f"smartrecruiters:{company}:{p['id']}",
+                    "title": p["name"].strip(),
+                    "company": name,
+                    "location": p["location"].get("fullLocation", ""),
+                    "closing": "",
+                    "url": f"https://jobs.smartrecruiters.com/{company}/{p['id']}",
+                    "source": f"{name} careers",
+                })
+            if len(page) < 100:
+                break
+    return out
+
+
+def x99(session):
+    """99x lists its Sri Lanka openings as cards (a heading and a 'Read more' link)."""
+    r = session.get("https://99x.io/careers/open-positions", params={"location": "sri-lanka"}, timeout=40)
+    out = []
+    for h in BeautifulSoup(r.text, "html.parser").find_all("h2"):
+        card = h.parent
+        a = card.find("a", href=re.compile(r"/careers/open-positions/.+/"))
+        if not a:
+            continue
+        out.append({
+            "id": "99x:" + a["href"].rstrip("/").rsplit("/", 1)[-1].lower(),
+            "title": h.get_text(" ", strip=True),
+            "company": "99x",
+            "location": "Sri Lanka",
+            "closing": "",
+            "url": a["href"],
+            "source": "99x careers",
+        })
     return out
