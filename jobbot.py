@@ -128,19 +128,26 @@ def any_hit(rxs, text):
 
 # ---------- sources ----------
 
+def fetch_topjobs(url):
+    """topjobs.lk is slow or unreachable from GitHub's servers at times, so after two direct
+    tries the page is fetched through r.jina.ai, which returns the same HTML."""
+    for attempt in range(2):
+        try:
+            return S.get(url, timeout=(15, 40)).text
+        except requests.exceptions.RequestException:
+            time.sleep(5)
+    log("topjobs: direct fetch failed, using r.jina.ai")
+    r = S.get("https://r.jina.ai/" + url, timeout=90,
+              headers={"X-Return-Format": "html"})
+    r.raise_for_status()
+    return r.text
+
+
 def src_topjobs():
     out = []
     for fa in union("topjobs_categories"):
         url = f"https://www.topjobs.lk/applicant/vacancybyfunctionalarea.jsp?FA={fa}"
-        for attempt in range(3):  # topjobs is sometimes slow in the evening
-            try:
-                r = S.get(url, timeout=60)
-                break
-            except requests.exceptions.RequestException:
-                if attempt == 2:
-                    raise
-                time.sleep(10)
-        soup = BeautifulSoup(r.text, "html.parser")
+        soup = BeautifulSoup(fetch_topjobs(url), "html.parser")
         for tr in soup.find_all("tr", onclick=re.compile("createAlert")):
             m = re.search(r"createAlert\('\d+','(\w+)','(\d+)','(\w+)'", tr["onclick"])
             if not m:
