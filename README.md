@@ -41,7 +41,7 @@ Cloud (GitHub Actions): topjobs.lk, LinkedIn, ikman.lk, Dialog / Mobitel / SLT c
 Hutch / Superloop / Lanka Bell career pages, gazette.lk (government and public sector),
 LSEG and Sysco LABS (Workday), GTN (SuccessFactors), WSO2 and Ericsson Sri Lanka, Port City BPO
 (careers-page.com), Cloud Solutions International (Recruitee),
-IFS (SmartRecruiters) and 99x.
+IFS (SmartRecruiters), 99x and itpro.lk (IT jobs board; the newest 150 ads on each check).
 Remote jobs open to Sri Lanka, for Yohan only (Himalayas, Jobicy, We Work Remotely): each ad is
 checked for worldwide/APAC/Sri Lanka eligibility, country locks, seniority, years asked (max 2)
 and scam signs before it can alert (sources_remote.py).

@@ -217,6 +217,35 @@ def smartrecruiters(session, portals):
     return out
 
 
+def itpro(session, pages=3):
+    """itpro.lk lists newest IT jobs first, 50 a page (?p=N). The site is slow, so only the
+    newest pages are read; anything older was already seen on an earlier run."""
+    out = []
+    for page in range(1, pages + 1):
+        try:
+            r = session.get("https://itpro.lk/jobs/", params={"p": page} if page > 1 else None, timeout=60)
+            r.raise_for_status()
+        except Exception:
+            if not out:
+                raise
+            break  # keep what was read; the rest is picked up next run
+        for card in BeautifulSoup(r.text, "html.parser").select("article.job-card"):
+            a, h2, co = card.find("a", href=True), card.select_one(".jc-title"), card.select_one(".jc-company")
+            if not (a and h2):
+                continue
+            where = card.select_one(".jc-company-info .la")
+            out.append({
+                "id": f"itpro:{card.get('id') or a['href']}",
+                "title": h2.get_text(" ", strip=True),
+                "company": co.get_text(" ", strip=True) if co else "",
+                "location": where.get_text(" ", strip=True) if where else "Sri Lanka",
+                "closing": "",
+                "url": a["href"],
+                "source": "itpro.lk",
+            })
+    return out
+
+
 def x99(session):
     """99x lists its Sri Lanka openings as cards (a heading and a 'Read more' link)."""
     r = session.get("https://99x.io/careers/open-positions", params={"location": "sri-lanka"}, timeout=40)
