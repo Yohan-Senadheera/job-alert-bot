@@ -379,6 +379,7 @@ SOURCES = [("topjobs", src_topjobs), ("xpress", src_xpress), ("ikman", src_ikman
            ("recruitee", lambda: remote.recruitee(S, CFG.get("recruitee_portals", {}))),
            ("smartrecruiters", lambda: remote.smartrecruiters(S, CFG.get("smartrecruiters_portals", {}))),
            ("99x", lambda: remote.x99(S)),
+           ("rooster", lambda: remote.rooster(S)),
            ("itpro", lambda: remote.itpro(S)),
            ("remote", lambda: remote.remote(S, CFG["remote"])),
            ("wso2", lambda: extra.wso2(S)), ("ericsson", lambda: extra.ericsson(S))]
@@ -406,7 +407,7 @@ def tg(method, **params):
 LISTING_SOURCES = {"xpress.jobs", "Dialog careers", "Mobitel careers", "SLT careers", "LSEG careers", "WSO2 careers",
                    "Ericsson careers", "Sysco LABS careers", "GTN careers", "Port City BPO careers",
                    "Cloud Solutions International careers", "Himalayas (remote)", "Jobicy (remote)",
-                   "We Work Remotely (remote)", "IFS careers", "99x careers", "itpro.lk"}
+                   "We Work Remotely (remote)", "IFS careers", "99x careers", "itpro.lk", "rooster.jobs"}
 
 
 def is_listing_page(job):

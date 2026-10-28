@@ -246,6 +246,28 @@ def itpro(session, pages=3):
     return out
 
 
+def rooster(session, per_page=100, pages=2):
+    """rooster.jobs (a Sri Lankan job board) answers a JSON search, newest first. Only the
+    newest ads are read: anything older was already seen on an earlier run."""
+    out = []
+    for page in range(1, pages + 1):
+        r = session.post("https://api.rooster.jobs/jobSearch/jobs/search", timeout=40,
+                         json={"query": [], "filters": {"country": "Sri Lanka"}, "limit": per_page, "page": page})
+        r.raise_for_status()
+        for j in r.json()["body"]["data"]:
+            out.append({
+                "id": f"rooster:{j['id']}",
+                "title": j["title"].strip(),
+                "company": (j.get("company_name") or "").strip(),
+                "location": j.get("location") or "Sri Lanka",
+                "closing": "",
+                "url": f"https://rooster.jobs/jobs/{j['id']}",
+                "source": "rooster.jobs",
+                "desc": _text(j.get("description")),
+            })
+    return out
+
+
 def x99(session):
     """99x lists its Sri Lanka openings as cards (a heading and a 'Read more' link)."""
     r = session.get("https://99x.io/careers/open-positions", params={"location": "sri-lanka"}, timeout=40)
