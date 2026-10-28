@@ -222,8 +222,12 @@ def itpro(session, pages=3):
     newest pages are read; anything older was already seen on an earlier run."""
     out = []
     for page in range(1, pages + 1):
+        url = "https://itpro.lk/jobs/" + (f"?p={page}" if page > 1 else "")
         try:
-            r = session.get("https://itpro.lk/jobs/", params={"p": page} if page > 1 else None, timeout=60)
+            r = session.get(url, timeout=60)
+            if r.status_code == 403:  # itpro.lk blocks GitHub's servers; r.jina.ai relays the same page
+                r = session.get("https://r.jina.ai/" + url, timeout=90,
+                                headers={"X-Return-Format": "html", "X-No-Cache": "true"})
             r.raise_for_status()
         except Exception:
             if not out:
