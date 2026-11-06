@@ -12,9 +12,13 @@ import html
 import json
 import os
 import re
+import shutil
+import subprocess
 import sys
+import tempfile
 import time
 import traceback
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import quote_plus
@@ -291,27 +295,82 @@ def src_dialog():
     return out
 
 
-def src_mobitel():
-    """mobitel.lk/careers lists each vacancy as a heading followed by the advert image."""
-    r = S.get("https://www.mobitel.lk/careers", timeout=40)
-    soup = BeautifulSoup(r.text, "html.parser")
-    out = []
-    for h in soup.find_all("h6"):
-        title = h.get_text(" ", strip=True)
-        img = h.find_next("img")
-        if not title or not img or not img.get("src"):
+MOBITEL_CAREER = "https://sltmobitel.lk/career?page={}&lan=en"
+
+
+def _browser():
+    """A headless-capable Chrome/Edge: $CHROME_BIN, then common names and install paths."""
+    cands = [os.environ.get("CHROME_BIN", "")]
+    cands += [shutil.which(n) or "" for n in ("google-chrome", "chromium", "chromium-browser", "msedge")]
+    cands += [r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+              r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"]
+    return next((c for c in cands if c and os.path.exists(c)), None)
+
+
+def _render(url, browser, wait_ms=25000):
+    """Page HTML after its scripts ran (the site builds its job list in the browser)."""
+    with tempfile.TemporaryDirectory() as profile:
+        res = subprocess.run(
+            [browser, "--headless=new", "--disable-gpu", "--no-sandbox", f"--user-data-dir={profile}",
+             f"--virtual-time-budget={wait_ms}", "--dump-dom", url],
+            capture_output=True, timeout=150)
+    return res.stdout.decode("utf-8", "ignore")
+
+
+def _mobitel_page(n, browser):
+    html_ = ""
+    for attempt in (1, 2):  # a slow render sometimes comes back before the list is drawn
+        try:
+            html_ = _render(MOBITEL_CAREER.format(n), browser, wait_ms=25000 + 15000 * (attempt - 1))
+        except (subprocess.TimeoutExpired, OSError) as ex:
+            log(f"mobitel page {n}: {type(ex).__name__}")
             continue
-        src = requests.compat.urljoin("https://www.mobitel.lk/", img["src"])
-        out.append({
-            "id": "mobitel:" + hashlib.sha1(title.lower().encode()).hexdigest()[:16],
-            "title": title.title(),
-            "company": "SLT-Mobitel (Mobitel)",
-            "location": "",
-            "closing": "",
-            "url": src,  # the advert image itself is the job post
-            "source": "Mobitel careers",
-            "image_url": src,
-        })
+        if "New Post" in html_:
+            break
+    soup = BeautifulSoup(html_, "html.parser")
+    pages = [int(b.get_text(strip=True)) for b in soup.select(".v-pagination button, .v-pagination li")
+             if b.get_text(strip=True).isdigit()]
+    rows = []
+    for chunk in html_.split("New Post")[1:]:
+        lines = [l for l in BeautifulSoup(chunk.split("View More")[0], "html.parser").get_text("\n").split("\n")
+                 if l.strip()]
+        if len(lines) >= 2:
+            rows.append(([l.strip() for l in lines]))
+    return n, rows, max(pages, default=0)
+
+
+def src_mobitel():
+    """sltmobitel.lk/career builds its list in the browser, so each page is rendered headless."""
+    browser = _browser()
+    if not browser:
+        log("mobitel: no Chrome/Edge found, skipped")
+        return []
+    _, first, last = _mobitel_page(1, browser)
+    last = min(max(last, 1), 10)
+    pages = {1: first}
+    if last > 1:
+        with ThreadPoolExecutor(max_workers=3) as ex:
+            for n, rows, _ in ex.map(lambda p: _mobitel_page(p, browser), range(2, last + 1)):
+                pages[n] = rows
+    out, seen = [], set()
+    for rows in pages.values():
+        for lines in rows:
+            title, company = lines[0], lines[1] if len(lines) > 1 else "Mobitel"
+            where = lines[2] if len(lines) > 2 else ""
+            closing = next((l.split(":", 1)[1].strip() for l in lines if l.startswith("Closing Date")), "")
+            key = (title.lower(), where.lower())
+            if key in seen:
+                continue
+            seen.add(key)
+            out.append({
+                "id": "mobitel:" + hashlib.sha1("|".join(key).encode()).hexdigest()[:16],
+                "title": title,
+                "company": "SLT-Mobitel (SLT)" if company.strip().upper() == "SLT" else "SLT-Mobitel (Mobitel)",
+                "location": where,
+                "closing": closing,
+                "url": MOBITEL_CAREER.format(1),
+                "source": "Mobitel careers",
+            })
     return out
 
 
