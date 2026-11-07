@@ -166,9 +166,19 @@ def fetch_topjobs(url):
     raise RuntimeError("topjobs: no way to fetch " + url)
 
 
+# topjobs refuses GitHub's servers for these large categories, so the laptop fetches them
+# (JOBBOT_ONLY=topjobs) and the cloud run skips them. That way no job is alerted twice.
+TOPJOBS_LOCAL_ONLY = ("HNS", "MAE", "SDQ")
+
+
 def src_topjobs():
     out = []
-    for fa in union("topjobs_categories"):
+    cats = union("topjobs_categories")
+    if ONLY == "topjobs":
+        cats = [c for c in cats if c in TOPJOBS_LOCAL_ONLY]
+    elif os.environ.get("GITHUB_ACTIONS"):
+        cats = [c for c in cats if c not in TOPJOBS_LOCAL_ONLY]
+    for fa in cats:
         url = f"https://www.topjobs.lk/applicant/vacancybyfunctionalarea.jsp?FA={fa}"
         try:
             soup = BeautifulSoup(fetch_topjobs(url), "html.parser")
