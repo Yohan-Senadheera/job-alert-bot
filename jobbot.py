@@ -409,7 +409,14 @@ def src_mobitel():
 
 def src_slt():
     """careers.slt.lk: SLT-Mobitel's application portal, one link per open intake."""
-    r = S.get("https://careers.slt.lk/", timeout=40)
+    for attempt in range(3):  # the portal sometimes refuses GitHub's servers for a moment
+        try:
+            r = S.get("https://careers.slt.lk/", timeout=40)
+            break
+        except requests.exceptions.ConnectionError:
+            if attempt == 2:
+                raise
+            time.sleep(10 * (attempt + 1))
     soup = BeautifulSoup(r.text, "html.parser")
     out = []
     for a in soup.select("a.joblink"):
