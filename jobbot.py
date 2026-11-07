@@ -137,21 +137,44 @@ def fetch_topjobs(url):
     tries the page is fetched through r.jina.ai, which returns the same HTML."""
     for attempt in range(2):
         try:
-            return S.get(url, timeout=(15, 40)).text
-        except requests.exceptions.RequestException:
-            time.sleep(5)
-    log("topjobs: direct fetch failed, using r.jina.ai")
-    r = S.get("https://r.jina.ai/" + url, timeout=90,
-              headers={"X-Return-Format": "html"})
-    r.raise_for_status()
-    return r.text
+            text = S.get(url, timeout=(15, 40)).text
+            if "createAlert" in text:
+                return text
+            log(f"topjobs: direct page had no job rows ({len(text)} bytes)")
+        except requests.exceptions.RequestException as ex:
+            log(f"topjobs: direct fetch {type(ex).__name__}")
+        time.sleep(5)
+    log("topjobs: using r.jina.ai")
+    try:
+        r = S.get("https://r.jina.ai/" + url, timeout=100,
+                  headers={"X-Return-Format": "html", "X-Engine": "direct", "X-Timeout": "60"})
+        if r.ok and "createAlert" in r.text:
+            return r.text
+        log(f"topjobs: r.jina.ai gave HTTP {r.status_code}")
+    except requests.exceptions.RequestException as ex:
+        log(f"topjobs: r.jina.ai {type(ex).__name__}")
+    browser = _browser()
+    if browser:
+        log("topjobs: using headless browser")
+        try:
+            text = _render(url, browser, wait_ms=15000)
+            if "createAlert" in text:
+                return text
+            log(f"topjobs: browser page had no job rows ({len(text)} bytes)")
+        except (subprocess.TimeoutExpired, OSError) as ex:
+            log(f"topjobs: browser {type(ex).__name__}")
+    raise RuntimeError("topjobs: no way to fetch " + url)
 
 
 def src_topjobs():
     out = []
     for fa in union("topjobs_categories"):
         url = f"https://www.topjobs.lk/applicant/vacancybyfunctionalarea.jsp?FA={fa}"
-        soup = BeautifulSoup(fetch_topjobs(url), "html.parser")
+        try:
+            soup = BeautifulSoup(fetch_topjobs(url), "html.parser")
+        except Exception as ex:
+            log(f"topjobs {fa}: {type(ex).__name__}: {ex}")
+            continue
         for tr in soup.find_all("tr", onclick=re.compile("createAlert")):
             m = re.search(r"createAlert\('\d+','(\w+)','(\d+)','(\w+)'", tr["onclick"])
             if not m:
