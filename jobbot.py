@@ -166,18 +166,9 @@ def fetch_topjobs(url):
     raise RuntimeError("topjobs: no way to fetch " + url)
 
 
-# topjobs refuses GitHub's servers for these large categories, so the laptop fetches them
-# (JOBBOT_ONLY=topjobs) and the cloud run skips them. That way no job is alerted twice.
-TOPJOBS_LOCAL_ONLY = ("HNS", "MAE", "SDQ")
-
-
 def src_topjobs():
     out = []
     cats = union("topjobs_categories")
-    if ONLY == "topjobs":
-        cats = [c for c in cats if c in TOPJOBS_LOCAL_ONLY]
-    elif os.environ.get("GITHUB_ACTIONS"):
-        cats = [c for c in cats if c not in TOPJOBS_LOCAL_ONLY]
     for fa in cats:
         url = f"https://www.topjobs.lk/applicant/vacancybyfunctionalarea.jsp?FA={fa}"
         try:
@@ -385,6 +376,11 @@ def src_mobitel():
         with ThreadPoolExecutor(max_workers=3) as ex:
             for n, rows, _ in ex.map(lambda p: _mobitel_page(p, browser), range(2, last + 1)):
                 pages[n] = rows
+    for n in range(1, last + 1):  # a page whose list was not drawn in time is rendered again
+        for _ in range(2):
+            if pages.get(n):
+                break
+            pages[n] = _mobitel_page(n, browser)[1]
     out, seen = [], set()
     for rows in pages.values():
         for lines in rows:
@@ -415,7 +411,8 @@ def src_slt():
             break
         except requests.exceptions.ConnectionError:
             if attempt == 2:
-                raise
+                log("slt: portal refused the connection, skipped this run")
+                return []
             time.sleep(10 * (attempt + 1))
     soup = BeautifulSoup(r.text, "html.parser")
     out = []
@@ -485,8 +482,12 @@ SOURCES = [("topjobs", src_topjobs), ("xpress", src_xpress), ("ikman", src_ikman
 if ONLY:
     SOURCES = [s for s in SOURCES if s[0] == ONLY]
 elif os.environ.get("GITHUB_ACTIONS"):
-    # xpress.jobs answers 403 to GitHub's cloud servers, so it only works from a home connection
-    SOURCES = [s for s in SOURCES if s[0] != "xpress"]
+    # xpress.jobs and topjobs.lk refuse GitHub's cloud servers, so the laptop runs them (JOBBOT_ONLY)
+    SOURCES = [s for s in SOURCES if s[0] not in ("xpress", "topjobs")]
+
+
+# sources that always have listings; an empty answer means the site is blocking us or changed
+MUST_LIST = {"topjobs", "xpress", "linkedin", "dialog", "mobitel", "gazette", "rooster", "itpro"}
 
 
 # ---------- telegram ----------
@@ -581,6 +582,8 @@ def run(dry=False):
     for name, fn in SOURCES:
         try:
             got = fn()
+            if not got and name in MUST_LIST:
+                raise RuntimeError("returned no listings")
             jobs += got
             checked += len(got)
             st["errors"].pop(name, None)
