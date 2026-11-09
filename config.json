@@ -257,7 +257,11 @@
         "Huawei engineer",
         "Huawei datacom",
         "HCIA network engineer",
-        "Ericsson Sri Lanka"
+        "Ericsson Sri Lanka",
+        "(\"Datacom\" OR \"Data Communication\" OR \"Huawei\" OR \"HCIA\" OR \"IP Network\") AND (Engineer OR Trainee OR Associate OR Graduate) NOT (Senior OR Lead OR Manager OR Principal OR Head OR Director OR Sales)",
+        "(\"IP/MPLS\" OR \"MPLS\" OR \"Core Network\" OR \"Packet Core\" OR \"IP Core\" OR \"Routing and Switching\") AND (Engineer OR Trainee OR Associate OR Graduate) NOT (Senior OR Lead OR Manager OR Principal OR Head OR Director OR Architect)",
+        "(\"Network Engineer\" OR \"Network Administrator\" OR \"NOC\" OR \"Network Support\" OR \"Network Operations\" OR CCNA) AND (Junior OR Associate OR Trainee OR Graduate OR Engineer) NOT (Senior OR Lead OR Manager OR Principal OR Head OR Director OR Sales)",
+        "(\"RF Planning\" OR \"RF Optimization\" OR \"Radio Network\" OR \"Network Planning\" OR \"RAN\" OR \"Drive Test\") AND (Engineer OR Trainee OR Graduate OR Associate) NOT (Senior OR Lead OR Manager OR Principal OR Head OR Director)"
       ],
       "topjobs_categories": [
         "ITT",
