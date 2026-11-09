@@ -245,19 +245,30 @@ def src_ikman():
 LI_STATE = {"offset": 0}
 
 
-def src_linkedin():
-    # LinkedIn rate-limits cloud IPs, so each run does a rotating slice of the
-    # searches; with "past week" results nothing is missed between slices.
-    out = []
-    qs = union("linkedin_queries")
-    n = CFG.get("linkedin_per_run", 8)
-    start = LI_STATE["offset"] % len(qs)
-    batch = (qs + qs)[start:start + n]
-    LI_STATE["offset"] = start + n
-    for q in batch:
-        url = ("https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search"
-               f"?keywords={quote_plus(q)}&location=Sri%20Lanka&f_TPR=r604800&start=0")
+def li_search(q, tpr):
+    url = ("https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search"
+           f"?keywords={quote_plus(q)}&location=Sri%20Lanka&f_TPR={tpr}&start=0")
+    for attempt in range(2):  # LinkedIn answers 429 when asked too often: wait, then try once more
         r = S.get(url, timeout=30)
+        if r.status_code != 429:
+            break
+        time.sleep(25)
+    return r
+
+
+def src_linkedin():
+    # LinkedIn rate-limits cloud IPs. The core searches (config "linkedin_pinned") run on every pass and look at
+    # the last 24 hours, so a new post is found within about 30 minutes. The other searches rotate in slices of
+    # "linkedin_per_run" and look at the past week, so nothing is missed between slices.
+    out = []
+    pinned = CFG.get("linkedin_pinned", [])
+    rotating = [q for q in union("linkedin_queries") if q not in pinned]
+    n = CFG.get("linkedin_per_run", 5)
+    start = LI_STATE["offset"] % max(len(rotating), 1)
+    batch = [(q, "r86400") for q in pinned] + [(q, "r604800") for q in (rotating + rotating)[start:start + n]]
+    LI_STATE["offset"] = start + n
+    for q, tpr in batch:
+        r = li_search(q, tpr)
         if r.status_code != 200:
             log(f"linkedin '{q}' -> HTTP {r.status_code}")
             time.sleep(15)

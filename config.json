@@ -584,6 +584,8 @@
     "batch_size": 8,
     "max_desc_chars": 1200
   },
+  "linkedin_pinned": ["Site Reliability Engineer", "DevOps Engineer", "network engineer", "datacom engineer"],
+  "linkedin_per_run": 6,
   "quiet_hours": {
     "_note": "Sri Lanka time. Runs starting in this window exit straight away.",
     "from": 1,
