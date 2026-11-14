@@ -53,7 +53,7 @@ def log(msg):
 
 def load_env():
     # GitHub Actions passes these as environment variables; locally they come from .env
-    env = {k: v for k, v in os.environ.items() if k.startswith(("TELEGRAM_", "CHAT_", "GEMINI_"))}
+    env = {k: v for k, v in os.environ.items() if k.startswith(("TELEGRAM_", "CHAT_", "GEMINI_", "PARTNER_"))}
     p = HERE / ".env"
     if p.exists():
         for ln in p.read_text(encoding="utf-8").splitlines():
@@ -111,6 +111,11 @@ class Profile:
             lvl = "caution"  # still sent, but last and flagged (site visits / shifts likely)
         return lvl
 
+
+# the second profile's label and description come from the environment (a secret on GitHub, .env locally)
+if "partner" in CFG["profiles"]:
+    CFG["profiles"]["partner"]["label"] = ENV.get("PARTNER_LABEL", CFG["profiles"]["partner"]["label"])
+    CFG["profiles"]["partner"]["summary"] = ENV.get("PARTNER_SUMMARY", CFG["profiles"]["partner"].get("summary", ""))
 
 PROFILES = [Profile(k, v) for k, v in CFG["profiles"].items()]
 EXCL_LOC = _rx(CFG["exclude_locations"])
@@ -567,6 +572,8 @@ def load_seen():
     if SEEN_FILE.exists():
         st = json.loads(SEEN_FILE.read_text(encoding="utf-8"))
     st.setdefault("sent", {})
+    for old in [k for k in st["sent"] if k not in CFG["profiles"]]:  # a profile was renamed
+        st["sent"].setdefault("partner", {}).update(st["sent"].pop(old))
     st.setdefault("errors", {})
     return st
 

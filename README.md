@@ -1,11 +1,21 @@
 # Job alert bot
 
-Every 30 minutes this bot checks Sri Lankan job sources and sends new entry-level
-telecom / EEE matches to Telegram. Matches marked ⭐ are telecom-specific.
+A self-automated job alert bot I built for myself, so I never have to refresh job sites by hand and
+never miss a new posting. It runs on its own in the cloud, checks about 30 Sri Lankan and remote job
+sources every 30 minutes, filters by keyword and (optionally) an AI fit score, removes duplicates and
+sends only the new matches to Telegram. I also use it to send alerts to my girlfriend.
 
-**Sources:** topjobs.lk (IT-Telecoms, Eng-Mech/Auto/Elec and Networks categories),
-xpress.jobs (all listings), ikman.lk jobs, LinkedIn (Sri Lanka, past week) and the
-career pages of Dialog, SLT, Mobitel, Airtel and Hutch.
+**What it does**
+- Polls job boards (topjobs.lk, xpress.jobs, ikman.lk, LinkedIn, itpro.lk, rooster.jobs, gazette.lk),
+  company career portals (Workday, SuccessFactors, SmartRecruiters, Recruitee and custom pages) and
+  remote-job feeds.
+- Matches each ad by title against per-person keyword profiles, excludes seniority and location
+  mismatches, and checks remote ads for eligibility, years asked and scam signs.
+- Scores fit with Gemini when a key is set, and falls back to keyword scoring if the quota runs out.
+- Remembers what it has already sent, so each job alerts once. Reports a source in Telegram when it
+  starts failing, for example because the site layout changed.
+- Runs on GitHub Actions (with cron-job.org as the trigger), plus a laptop task for the one site that
+  blocks cloud servers.
 
 ## Setup (one time)
 1. In Telegram, open **@BotFather**, send `/newbot` and pick a name. Copy the token it gives you.
@@ -26,7 +36,7 @@ layout changed), the bot says so in Telegram.
 - `python jobbot.py --dry`: shows what would match, without sending or saving anything.
 - To stop the bot: `Unregister-ScheduledTask JobBot`
 
-To alert more than one person, put several chat ids in `TELEGRAM_CHAT_ID`, separated by commas.
+To alert more than one person, add a profile in `config.json` with its own chat id variable (the second profile's label and description are read from the `PARTNER_LABEL` and `PARTNER_SUMMARY` secrets or `.env`).
 `.env` holds the bot token, so keep it private.
 
 ## Cloud schedule

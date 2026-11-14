@@ -42,6 +42,8 @@ jobs:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           CHAT_YOHAN: ${{ secrets.CHAT_YOHAN }}
           CHAT_PARTNER: ${{ secrets.CHAT_PARTNER }}
+          PARTNER_LABEL: ${{ secrets.PARTNER_LABEL }}
+          PARTNER_SUMMARY: ${{ secrets.PARTNER_SUMMARY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       - name: Save sent-jobs state
         if: always() && hashFiles('seen.json') != ''
