@@ -112,7 +112,57 @@
         "noc",
         "drive test",
         "in-building",
-        "ibs"
+        "ibs",
+        "systems engineer",
+        "system engineer",
+        "ict engineer",
+        "it engineer",
+        "solutions engineer",
+        "solution engineer",
+        "support engineer",
+        "technical support engineer",
+        "junior engineer",
+        "associate engineer",
+        "graduate engineer",
+        "trainee engineer",
+        "graduate trainee",
+        "engineer trainee",
+        "electronic engineer",
+        "electronics engineer",
+        "electrical engineer",
+        "embedded",
+        "iot",
+        "automation engineer",
+        "test engineer",
+        "it infrastructure",
+        "infrastructure engineer",
+        "network security",
+        "security engineer",
+        "linux",
+        "python",
+        "wifi",
+        "wi-fi",
+        "voip",
+        "pbx",
+        "firewall",
+        "cisco",
+        "juniper",
+        "huawei",
+        "ericsson",
+        "nokia",
+        "zte",
+        "data centre",
+        "data center",
+        "cloud network",
+        "technical consultant",
+        "presales",
+        "pre-sales",
+        "service assurance",
+        "service delivery",
+        "oss",
+        "bss",
+        "telco",
+        "ict"
       ],
       "company_role_words": [
         "engineer",
@@ -261,7 +311,27 @@
         "(\"Datacom\" OR \"Data Communication\" OR \"Huawei\" OR \"HCIA\" OR \"IP Network\") AND (Engineer OR Trainee OR Associate OR Graduate) NOT (Senior OR Lead OR Manager OR Principal OR Head OR Director OR Sales)",
         "(\"IP/MPLS\" OR \"MPLS\" OR \"Core Network\" OR \"Packet Core\" OR \"IP Core\" OR \"Routing and Switching\") AND (Engineer OR Trainee OR Associate OR Graduate) NOT (Senior OR Lead OR Manager OR Principal OR Head OR Director OR Architect)",
         "(\"Network Engineer\" OR \"Network Administrator\" OR \"NOC\" OR \"Network Support\" OR \"Network Operations\" OR CCNA) AND (Junior OR Associate OR Trainee OR Graduate OR Engineer) NOT (Senior OR Lead OR Manager OR Principal OR Head OR Director OR Sales)",
-        "(\"RF Planning\" OR \"RF Optimization\" OR \"Radio Network\" OR \"Network Planning\" OR \"RAN\" OR \"Drive Test\") AND (Engineer OR Trainee OR Graduate OR Associate) NOT (Senior OR Lead OR Manager OR Principal OR Head OR Director)"
+        "(\"RF Planning\" OR \"RF Optimization\" OR \"Radio Network\" OR \"Network Planning\" OR \"RAN\" OR \"Drive Test\") AND (Engineer OR Trainee OR Graduate OR Associate) NOT (Senior OR Lead OR Manager OR Principal OR Head OR Director)",
+        "ICT engineer",
+        "systems engineer network",
+        "junior network engineer",
+        "graduate trainee engineer telecom",
+        "electronic engineer",
+        "NOC engineer",
+        "IT infrastructure engineer",
+        "technical support engineer network",
+        "telecom engineer trainee",
+        "wireless engineer",
+        "transmission engineer",
+        "network security engineer",
+        "Cisco engineer",
+        "Nokia Sri Lanka",
+        "ZTE Sri Lanka",
+        "Huawei Sri Lanka",
+        "presales engineer ICT",
+        "service assurance engineer",
+        "OSS BSS engineer",
+        "solutions engineer"
       ],
       "topjobs_categories": [
         "ITT",
@@ -584,8 +654,13 @@
     "batch_size": 8,
     "max_desc_chars": 1200
   },
-  "linkedin_pinned": ["Site Reliability Engineer", "DevOps Engineer", "network engineer", "datacom engineer"],
-  "linkedin_per_run": 6,
+  "linkedin_pinned": [
+    "Site Reliability Engineer",
+    "DevOps Engineer",
+    "network engineer",
+    "datacom engineer"
+  ],
+  "linkedin_per_run": 9,
   "quiet_hours": {
     "_note": "Sri Lanka time. Runs starting in this window exit straight away.",
     "from": 1,
@@ -597,10 +672,17 @@
       "lseg",
       "Careers"
     ],
-    "Sysco LABS": ["wd5.myworkdaysite.com", "sysco", "syscocareers"]
+    "Sysco LABS": [
+      "wd5.myworkdaysite.com",
+      "sysco",
+      "syscocareers"
+    ]
   },
   "successfactors_portals": {
-    "GTN": ["career44.sapsf.com", "gtngroupho"]
+    "GTN": [
+      "career44.sapsf.com",
+      "gtngroupho"
+    ]
   },
   "careers_page_portals": {
     "Port City BPO": "https://port-city-bpo.careers-page.com/"
@@ -614,10 +696,25 @@
   "remote": {
     "_note": "remote jobs open to Sri Lanka, for one profile; see sources_remote.py for the checks",
     "for": "yohan",
-    "queries": ["site reliability", "devops", "platform engineer", "cloud engineer", "kubernetes", "infrastructure engineer"],
-    "jobicy_tags": ["devops", "sre", "kubernetes", "cloud", "aws"],
+    "queries": [
+      "site reliability",
+      "devops",
+      "platform engineer",
+      "cloud engineer",
+      "kubernetes",
+      "infrastructure engineer"
+    ],
+    "jobicy_tags": [
+      "devops",
+      "sre",
+      "kubernetes",
+      "cloud",
+      "aws"
+    ],
     "max_years": 2,
     "max_age_days": 21,
-    "block_companies": ["thehivecareers"]
+    "block_companies": [
+      "thehivecareers"
+    ]
   }
 }

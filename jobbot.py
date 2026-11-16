@@ -492,6 +492,7 @@ SOURCES = [("topjobs", src_topjobs), ("xpress", src_xpress), ("ikman", src_ikman
            ("smartrecruiters", lambda: remote.smartrecruiters(S, CFG.get("smartrecruiters_portals", {}))),
            ("99x", lambda: remote.x99(S)),
            ("rooster", lambda: remote.rooster(S)),
+           ("jobhub", lambda: remote.jobhub(S)),
            ("itpro", lambda: remote.itpro(S)),
            ("remote", lambda: remote.remote(S, CFG["remote"])),
            ("wso2", lambda: extra.wso2(S)), ("ericsson", lambda: extra.ericsson(S))]

@@ -272,6 +272,34 @@ def rooster(session, per_page=100, pages=2):
     return out
 
 
+def jobhub(session, pages=12):
+    """jobhub.lk (a Sri Lankan job board) lists the newest ads first, 15 a page."""
+    out = []
+    for page in range(1, pages + 1):
+        r = session.get("https://jobhub.lk/en/Sri%20Lanka/search", params={"page": page}, timeout=40)
+        r.raise_for_status()
+        cards = BeautifulSoup(r.text, "html.parser").select("a.job-listing")
+        for a in cards:
+            title = a.select_one(".job-listing-title")
+            comp = a.select_one(".job-listing-company")
+            loc = a.select_one("li")
+            m = re.search(r"/job/[^/]+/[^/]+/(\d+)/", a["href"])
+            if not title or not m:
+                continue
+            out.append({
+                "id": f"jobhub:{m.group(1)}",
+                "title": title.get_text(" ", strip=True),
+                "company": comp.get_text(" ", strip=True) if comp else "",
+                "location": loc.get_text(" ", strip=True) if loc else "Sri Lanka",
+                "closing": "",
+                "url": "https://jobhub.lk" + a["href"].replace(" ", "%20"),
+                "source": "jobhub.lk",
+            })
+        if len(cards) < 15:
+            break
+    return out
+
+
 def x99(session):
     """99x lists its Sri Lanka openings as cards (a heading and a 'Read more' link)."""
     r = session.get("https://99x.io/careers/open-positions", params={"location": "sri-lanka"}, timeout=40)
