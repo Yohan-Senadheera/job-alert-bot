@@ -671,14 +671,22 @@ def run(dry=False):
         fits = fit.score(CFG["profiles"][prof.key], items, st, ENV.get("GEMINI_API_KEY"), gcfg,
                          lambda m: send(m, ("CHAT_YOHAN",)), log)
         order = {"top": -1, "strong": 0, "general": 1, "caution": 2}
+        skipped = []
         for (j, lvl), f, it in sorted(zip(top, fits, items), key=lambda x: (order[x[0][1]], -x[1]["fit"])):
-            # a title match alone is not enough: drop weak fits that are not first-choice roles
-            if lvl != "top" and ((f["by"] == "AI" and f["fit"] <= 3) or
-                                 (f["by"] == "keywords" and lvl in ("general", "caution") and len(it[1] or "") > 300
-                                  and f["why"].startswith("title match only"))):
+            # only the broad "general" and "caution" matches can be dropped, and only on a weak fit;
+            # telecom/network/RF matches ("strong", "top") are always sent, whatever the years asked
+            if lvl in ("general", "caution") and ((f["by"] == "AI" and f["fit"] <= 3) or
+                                                  (f["by"] == "keywords" and len(it[1] or "") > 300
+                                                   and f["why"].startswith("title match only"))):
                 log(f"{prof.key}: skipped weak fit ({f['fit']}) {j['title']} | {j.get('company')}")
+                skipped.append(j)
                 continue
             send(fmt(j, lvl, prof.label, f), prof.send_to)
+        if skipped:  # so a wrongly skipped role can still be seen
+            lines = ["🔎 Skipped as a weak fit for the second profile (not sent):"]
+            for x in skipped[:15]:
+                lines.append(f'• <a href="{html.escape(x["url"])}">{html.escape(x["title"])}</a> | {html.escape(x.get("company", ""))}')
+            send(chr(10).join(lines), ("CHAT_YOHAN",))
         if len(matches) > cap:
             send(f"{html.escape(prof.label)}: ... and {len(matches) - cap} more matches this round.",
                  prof.send_to)
