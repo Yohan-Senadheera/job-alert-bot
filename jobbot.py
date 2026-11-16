@@ -85,6 +85,7 @@ class Profile:
         self.career_names = set(p.get("career_pages", {}))
         self.caution = _rx(p.get("caution_words", []))
         self.priority = _rx(p.get("priority_keywords", []))
+        self.broad = _rx(p.get("broad_keywords", []))
 
     def classify(self, job):
         """Return 'top', 'strong', 'general', 'caution' or None for this person."""
@@ -107,6 +108,8 @@ class Profile:
             lvl = "strong"
         elif any_hit(self.general, title):
             lvl = "general"
+        elif any_hit(self.broad, title):
+            lvl = "broad"  # any engineer role; only sent when the AI rates the fit well
         if lvl and any_hit(self.caution, title):
             lvl = "caution"  # still sent, but last and flagged (site visits / shifts likely)
         return lvl
@@ -641,13 +644,13 @@ def run(dry=False):
                 digest.setdefault(j["source"], []).append((j, lvl))
                 continue
             matches.append((j, lvl))
-        matches.sort(key=lambda x: {"top": -1, "strong": 0, "general": 1, "caution": 2}[x[1]])
+        matches.sort(key=lambda x: {"top": -1, "strong": 0, "general": 1, "broad": 2, "caution": 3}[x[1]])
         for src in sources_ok:
             if src in LISTING_SOURCES or src.endswith("careers page"):
                 base_done.add(f"{prof.key}|{src}")
         if not dry:
             for src, items in digest.items():
-                items.sort(key=lambda x: {"top": -1, "strong": 0, "general": 1, "caution": 2}[x[1]])
+                items.sort(key=lambda x: {"top": -1, "strong": 0, "general": 1, "broad": 2, "caution": 3}[x[1]])
                 lines = [f"<b>{html.escape(prof.label)}</b>",
                          f"📋 Roles already listed on <b>{html.escape(src)}</b> (first check, so this "
                          "can include older adverts). From now on only new ones are alerted:"]
@@ -665,16 +668,28 @@ def run(dry=False):
             send(f"👋 <b>{html.escape(prof.label)}: job alerts are live.</b> Here are the "
                  f"{min(len(matches), cap)} matching roles open right now. After this, only new ones.",
                  prof.send_to)
-        top = matches[:cap]
+        top, n_broad = [], 0
+        for m in matches:
+            if m[1] == "broad":  # plain engineer titles use AI quota: score at most 12 per run
+                n_broad += 1
+                if n_broad > 12:
+                    continue
+            if len(top) < cap:
+                top.append(m)
         gcfg = CFG["gemini"]
         items = [(j, *fit.describe(S, j, gcfg["max_desc_chars"])) for j, _ in top]
         fits = fit.score(CFG["profiles"][prof.key], items, st, ENV.get("GEMINI_API_KEY"), gcfg,
                          lambda m: send(m, ("CHAT_YOHAN",)), log)
-        order = {"top": -1, "strong": 0, "general": 1, "caution": 2}
+        order = {"top": -1, "strong": 0, "general": 1, "broad": 2, "caution": 3}
         skipped = []
         for (j, lvl), f, it in sorted(zip(top, fits, items), key=lambda x: (order[x[0][1]], -x[1]["fit"])):
-            # only the broad "general" and "caution" matches can be dropped, and only on a weak fit;
-            # telecom/network/RF matches ("strong", "top") are always sent, whatever the years asked
+            # a plain "engineer" title is only sent when the AI rates the fit 5 or more; the broad
+            # "general" and "caution" matches are dropped only on a weak fit; telecom/network/RF matches
+            # ("strong", "top") are always sent, whatever the years asked
+            if lvl == "broad" and not (f["by"] == "AI" and f["fit"] >= 5):
+                log(f"{prof.key}: skipped broad engineer role ({f['fit']}, {f['by']}) {j['title']} | {j.get('company')}")
+                skipped.append(j)
+                continue
             if lvl in ("general", "caution") and ((f["by"] == "AI" and f["fit"] <= 3) or
                                                   (f["by"] == "keywords" and len(it[1] or "") > 300
                                                    and f["why"].startswith("title match only"))):
@@ -683,12 +698,13 @@ def run(dry=False):
                 continue
             send(fmt(j, lvl, prof.label, f), prof.send_to)
         if skipped:  # so a wrongly skipped role can still be seen
-            lines = ["🔎 Skipped as a weak fit for the second profile (not sent):"]
+            lines = [f"🔎 Skipped as a weak fit for {html.escape(prof.label)} (not sent):"]
             for x in skipped[:15]:
                 lines.append(f'• <a href="{html.escape(x["url"])}">{html.escape(x["title"])}</a> | {html.escape(x.get("company", ""))}')
             send(chr(10).join(lines), ("CHAT_YOHAN",))
-        if len(matches) > cap:
-            send(f"{html.escape(prof.label)}: ... and {len(matches) - cap} more matches this round.",
+        rest = len([m for m in matches if m[1] != "broad"]) - cap
+        if rest > 0:
+            send(f"{html.escape(prof.label)}: ... and {rest} more matches this round.",
                  prof.send_to)
     st["base_done"] = sorted(base_done)
     log(f"checked {checked}, alerts {total}")
