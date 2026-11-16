@@ -155,7 +155,7 @@ def score(prof_cfg, items, st, key, gcfg, notify, log):
             "Rate how well each job suits this candidate. Candidate: " + prof_cfg["summary"] +
             "\nReply as a JSON array, one object per job: "
             '{"i": job number, "fit": 0-10, "why": "max 12 words", "gap": "max 8 words, or empty"}. '
-            "Be strict about required years of experience and seniority. Jobs:")}]
+            "Read the whole ad. A job in a different field or industry (civil, construction, mechanical, marine, sales, etc.) is fit 0-1. Be strict about required years of experience and seniority. Jobs:")}]
         for k, (j, text, img) in enumerate(chunk, 1):
             head = f"\nJob {k}: {j['title']} | {j.get('company', '')} | {j.get('location', '')}\n"
             body = focus(text, gcfg["max_desc_chars"]) if text else (

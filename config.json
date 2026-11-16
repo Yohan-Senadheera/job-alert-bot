@@ -353,7 +353,39 @@
         "machinery",
         "quarry",
         "geotechnical",
-        "survey"
+        "survey",
+        "road",
+        "highway",
+        "bridge",
+        "water supply",
+        "sewer",
+        "geo",
+        "landscape",
+        "interior",
+        "irrigation",
+        "dam",
+        "tunnel",
+        "pavement",
+        "foundation",
+        "hydraulic",
+        "pump",
+        "lift",
+        "elevator",
+        "aircraft",
+        "aviation",
+        "oil",
+        "gas",
+        "petroleum",
+        "pipeline",
+        "paint",
+        "cement",
+        "concrete",
+        "steel",
+        "rubber",
+        "tyre",
+        "food",
+        "pharma",
+        "apparel"
       ],
       "linkedin_queries": [
         "network engineer",
@@ -550,7 +582,10 @@
         "cloud operations",
         "cloudops",
         "gitops",
-        "production engineer"
+        "production engineer",
+        "devops full stack",
+        "full stack devops",
+        "fullstack devops"
       ],
       "general_keywords": [
         "network engineer",
@@ -698,14 +733,19 @@
         "Cloud Engineer",
         "Platform Engineer",
         "Kubernetes",
-        "Infrastructure Engineer"
+        "Infrastructure Engineer",
+        "Software Engineer",
+        "Associate Software Engineer",
+        "Full Stack Engineer",
+        "Full Stack DevOps",
+        "Software Engineer DevOps"
       ],
       "topjobs_categories": [
         "SDQ",
         "HNS"
       ],
       "career_pages": {},
-      "summary": "Computer Engineering graduate (2026), University of Peradeniya. SRE intern at WSO2 Apr-Oct 2026: multi-cloud CI/CD on Argo, PKI certificate automation. Skills: Kubernetes (AKS, EKS, k3s), Docker, Terraform, Helm, Azure DevOps, GitHub Actions, GitOps, AWS, Azure, Prometheus/Grafana, Linux, Bash, Python, networking (CCNA 1-3), private 5G project. Wants SRE, DevOps, cloud or platform roles; under 1 year of experience.",
+      "summary": "Computer Engineering graduate (2026), University of Peradeniya. SRE intern at WSO2 Apr-Oct 2026: multi-cloud CI/CD on Argo, PKI certificate automation. Skills: Kubernetes (AKS, EKS, k3s), Docker, Terraform, Helm, Azure DevOps, GitHub Actions, GitOps, AWS, Azure, Prometheus/Grafana, Linux, Bash, Python, networking (CCNA 1-3), private 5G project. Wants SRE, DevOps, cloud or platform roles first. Also open to software engineer roles and full-stack roles that are DevOps-focused or software-engineering-focused (not pure front-end or design); under 1 year of experience, so entry level or associate level only.",
       "skills": [
         "kubernetes",
         "k8s",
@@ -737,7 +777,12 @@
         "security"
       ],
       "broad_keywords": [
-        "engineer"
+        "engineer",
+        "software",
+        "full stack",
+        "fullstack",
+        "full-stack",
+        "developer"
       ]
     }
   },

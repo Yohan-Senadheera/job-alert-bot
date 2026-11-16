@@ -681,27 +681,20 @@ def run(dry=False):
         fits = fit.score(CFG["profiles"][prof.key], items, st, ENV.get("GEMINI_API_KEY"), gcfg,
                          lambda m: send(m, ("CHAT_YOHAN",)), log)
         order = {"top": -1, "strong": 0, "general": 1, "broad": 2, "caution": 3}
-        skipped = []
         for (j, lvl), f, it in sorted(zip(top, fits, items), key=lambda x: (order[x[0][1]], -x[1]["fit"])):
             # a plain "engineer" title is only sent when the AI rates the fit 5 or more; the broad
             # "general" and "caution" matches are dropped only on a weak fit; telecom/network/RF matches
             # ("strong", "top") are always sent, whatever the years asked
             if lvl == "broad" and not (f["by"] == "AI" and f["fit"] >= 5):
-                log(f"{prof.key}: skipped broad engineer role ({f['fit']}, {f['by']}) {j['title']} | {j.get('company')}")
-                skipped.append(j)
+                log(f"{prof.key}: dropped broad role, ad does not match ({f['fit']}, {f['by']}) {j['title']} | {j.get('company')}")
                 continue
-            if lvl in ("general", "caution") and ((f["by"] == "AI" and f["fit"] <= 3) or
-                                                  (f["by"] == "keywords" and len(it[1] or "") > 300
-                                                   and f["why"].startswith("title match only"))):
-                log(f"{prof.key}: skipped weak fit ({f['fit']}) {j['title']} | {j.get('company')}")
-                skipped.append(j)
+            ai, wk = f["by"] == "AI", f["by"] == "keywords"
+            if (lvl in ("general", "caution") and ((ai and f["fit"] <= 3) or
+                                                   (wk and len(it[1] or "") > 300 and f["why"].startswith("title match only")))
+                    or (lvl in ("strong", "top") and ai and f["fit"] <= 1)):
+                log(f"{prof.key}: dropped, ad does not match ({f['fit']}) {j['title']} | {j.get('company')}")
                 continue
             send(fmt(j, lvl, prof.label, f), prof.send_to)
-        if skipped:  # so a wrongly skipped role can still be seen
-            lines = [f"🔎 Skipped as a weak fit for {html.escape(prof.label)} (not sent):"]
-            for x in skipped[:15]:
-                lines.append(f'• <a href="{html.escape(x["url"])}">{html.escape(x["title"])}</a> | {html.escape(x.get("company", ""))}')
-            send(chr(10).join(lines), ("CHAT_YOHAN",))
         rest = len([m for m in matches if m[1] != "broad"]) - cap
         if rest > 0:
             send(f"{html.escape(prof.label)}: ... and {rest} more matches this round.",
