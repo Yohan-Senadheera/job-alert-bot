@@ -671,7 +671,13 @@ def run(dry=False):
         fits = fit.score(CFG["profiles"][prof.key], items, st, ENV.get("GEMINI_API_KEY"), gcfg,
                          lambda m: send(m, ("CHAT_YOHAN",)), log)
         order = {"top": -1, "strong": 0, "general": 1, "caution": 2}
-        for (j, lvl), f in sorted(zip(top, fits), key=lambda x: (order[x[0][1]], -x[1]["fit"])):
+        for (j, lvl), f, it in sorted(zip(top, fits, items), key=lambda x: (order[x[0][1]], -x[1]["fit"])):
+            # a title match alone is not enough: drop weak fits that are not first-choice roles
+            if lvl != "top" and ((f["by"] == "AI" and f["fit"] <= 3) or
+                                 (f["by"] == "keywords" and lvl in ("general", "caution") and len(it[1] or "") > 300
+                                  and f["why"].startswith("title match only"))):
+                log(f"{prof.key}: skipped weak fit ({f['fit']}) {j['title']} | {j.get('company')}")
+                continue
             send(fmt(j, lvl, prof.label, f), prof.send_to)
         if len(matches) > cap:
             send(f"{html.escape(prof.label)}: ... and {len(matches) - cap} more matches this round.",
