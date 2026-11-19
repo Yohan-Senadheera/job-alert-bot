@@ -319,3 +319,47 @@ def x99(session):
             "source": "99x careers",
         })
     return out
+
+
+def _slug_title(slug):
+    slug = slug.replace("-2f-", " / ").replace("-e2-80-93-", " - ").replace("-e2-80-94-", " - ")
+    return re.sub(r"\s+", " ", slug.replace("-", " ")).strip().title()
+
+
+def hotjobs(session, keep, max_details=40):
+    """hotjobs.lk lists every open ad in a sitemap (the title is the url slug). Only ads whose title already
+    matches someone's keywords are opened, to read the company, place, closing date and description."""
+    import json as _json
+    xml = session.get("https://hotjobs.lk/sitemap/jobs.xml", timeout=40).text
+    ents = re.findall(r"<loc>https://hotjobs\.lk/jobs/([^</]+)/(\d+)</loc>", xml)
+    out = []
+    for slug, jid in reversed(ents):  # newest ids last in the sitemap
+        title = _slug_title(slug)
+        if not keep(title):
+            continue
+        if len(out) >= max_details:
+            break
+        url = f"https://hotjobs.lk/jobs/{slug}/{jid}"
+        try:
+            r = session.get(url, timeout=30)
+            if r.status_code != 200:
+                continue
+            m = re.search(r'ld\+json">(\{"@context":"https://schema.org/","@type":"JobPosting".*?\})</script>', r.text, re.S)
+            d = _json.loads(m.group(1)) if m else {}
+        except Exception:
+            continue
+        addr = ((d.get("jobLocation") or {}).get("address") or {})
+        if addr.get("addressCountry") not in (None, "", "LK"):
+            continue  # overseas post
+        out.append({
+            "id": f"hotjobs:{jid}",
+            "title": d.get("title") or title,
+            "company": (d.get("hiringOrganization") or {}).get("name", ""),
+            "location": addr.get("addressLocality", "Sri Lanka"),
+            "closing": d.get("validThrough", ""),
+            "url": url,
+            "source": "hotjobs.lk",
+            "desc": _text(d.get("description", ""))[:6000],
+        })
+        time.sleep(0.8)
+    return out

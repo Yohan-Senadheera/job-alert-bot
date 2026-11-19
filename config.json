@@ -686,7 +686,6 @@
         "mep",
         "ventilation",
         "building",
-        "reliability",
         "shift",
         "mechatronics",
         "mechatronic",
@@ -715,7 +714,9 @@
         "machinery",
         "quarry",
         "geotechnical",
-        "survey"
+        "survey",
+        "maintenance reliability",
+        "asset reliability"
       ],
       "linkedin_queries": [
         "Site Reliability Engineer",

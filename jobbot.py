@@ -496,6 +496,7 @@ SOURCES = [("topjobs", src_topjobs), ("xpress", src_xpress), ("ikman", src_ikman
            ("99x", lambda: remote.x99(S)),
            ("rooster", lambda: remote.rooster(S)),
            ("jobhub", lambda: remote.jobhub(S)),
+           ("hotjobs", lambda: remote.hotjobs(S, lambda t: any(p.classify({"title": t, "company": "", "location": "", "source": "hotjobs.lk"}) for p in PROFILES))),
            ("itpro", lambda: remote.itpro(S)),
            ("remote", lambda: remote.remote(S, CFG["remote"])),
            ("wso2", lambda: extra.wso2(S)), ("ericsson", lambda: extra.ericsson(S))]
