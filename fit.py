@@ -44,7 +44,7 @@ def describe(session, job, max_chars):
             return job["desc"][:max_chars], None
         if job.get("image_url"):
             im = session.get(job["image_url"], timeout=20)
-            if im.ok and len(im.content) < 1_500_000:
+            if im.ok and len(im.content) < 2_000_000:
                 return "", (im.headers.get("content-type", "image/jpeg").split(";")[0], im.content)
             return "", None
         src = job["source"]
@@ -65,7 +65,7 @@ def describe(session, job, max_chars):
                 if "/logo/" in s and "small" not in s:
                     url = requests.compat.urljoin(job["url"], s)
                     im = session.get(url, timeout=20)
-                    if im.ok and len(im.content) < 1_500_000:
+                    if im.ok and len(im.content) < 2_000_000:
                         mime = im.headers.get("content-type", "image/png").split(";")[0]
                         return "", (mime, im.content)
             return text[:max_chars], None

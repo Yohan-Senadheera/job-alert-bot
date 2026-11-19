@@ -560,10 +560,18 @@ PRIORITY = {"top": "🔴 PRIORITY 1: apply today", "strong": "🔴 PRIORITY 1: a
 def match_badge(f):
     if not f:
         return ""
+    if f["by"] != "AI":
+        return "⚪ <b>Match not checked by the AI</b>"
     n = f["fit"]
     word = "Strong match" if n >= 8 else "Good match" if n >= 6 else "Possible match" if n >= 4 else "Weak match"
     dot = "🟢" if n >= 8 else "🟡" if n >= 6 else "🟠" if n >= 4 else "🔴"
     return f"{dot} <b>{word}</b> ({n}/10{'' if f['by'] == 'AI' else ', keyword check'})"
+
+
+def forget(sent, job):
+    """Take a job out of the 'already alerted' record so it is looked at again on the next run."""
+    sent.pop(job["id"], None)
+    sent.pop("t:" + re.sub(r"\W+", "", (job["title"] + job.get("company", "")).lower()), None)
 
 
 def fmt(job, level, label, f=None):
@@ -579,7 +587,9 @@ def fmt(job, level, label, f=None):
     if f:
         lines.append("")
         lines.append(match_badge(f))
-        if f.get("why"):
+        if f["by"] != "AI":
+            lines.append("⚠️ Not read by the AI this time (quota or no text). Open the ad and check it.")
+        elif f.get("why"):
             lines.append(f"✅ {e(f['why'])}")
         if f.get("gap"):
             lines.append(f"⚠️ {e(f['gap'])}")
@@ -692,6 +702,7 @@ def run(dry=False):
             if m[1] == "broad":  # plain engineer titles use AI quota: score at most 12 per run
                 n_broad += 1
                 if n_broad > 12:
+                    forget(sent, m[0])  # not scored this run: look at it again next run
                     continue
             if len(top) < cap:
                 top.append(m)
@@ -704,12 +715,15 @@ def run(dry=False):
             # a plain "engineer" title is only sent when the AI rates the fit 5 or more; the broad
             # "general" and "caution" matches are dropped only on a weak fit; telecom/network/RF matches
             # ("strong", "top") are always sent, whatever the years asked
-            if lvl == "broad" and not (f["by"] == "AI" and f["fit"] >= 5):
+            if lvl == "broad" and f["by"] != "AI":
+                forget(sent, j)  # the AI could not read it (quota or error): try again next run
+                log(f"{prof.key}: broad role not scored, will retry {j['title']} | {j.get('company')}")
+                continue
+            if lvl == "broad" and f["fit"] < 5:
                 log(f"{prof.key}: dropped broad role, ad does not match ({f['fit']}, {f['by']}) {j['title']} | {j.get('company')}")
                 continue
             ai, wk = f["by"] == "AI", f["by"] == "keywords"
-            weak_general = lvl in ("general", "caution") and (
-                (ai and f["fit"] <= 4) or (wk and f["why"].startswith("title match only")))
+            weak_general = lvl in ("general", "caution") and ai and f["fit"] <= 4
             mismatch = lvl in ("strong", "top") and ai and f["fit"] <= 1
             if weak_general or mismatch:
                 log(f"{prof.key}: dropped, ad does not match ({f['fit']}) {j['title']} | {j.get('company')}")
