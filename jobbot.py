@@ -551,22 +551,40 @@ def send(text, env_names=("CHAT_YOHAN", "CHAT_PARTNER")):
             time.sleep(1.1)
 
 
+PRIORITY = {"top": "🔴 PRIORITY 1: apply today", "strong": "🔴 PRIORITY 1: apply today",
+            "general": "🟠 PRIORITY 2: apply this week", "broad": "🟡 PRIORITY 3: worth a look",
+            "caution": "⚪ CHECK THE AD: may involve site or shift work"}
+
+
+def match_badge(f):
+    if not f:
+        return ""
+    n = f["fit"]
+    word = "Strong match" if n >= 8 else "Good match" if n >= 6 else "Possible match" if n >= 4 else "Weak match"
+    dot = "🟢" if n >= 8 else "🟡" if n >= 6 else "🟠" if n >= 4 else "🔴"
+    return f"{dot} <b>{word}</b> ({n}/10{'' if f['by'] == 'AI' else ', keyword check'})"
+
+
 def fmt(job, level, label, f=None):
     e = html.escape
-    star = {"top": " ⭐⭐", "strong": " ⭐", "caution": " 🚧"}.get(level, "")
-    lines = [f"<b>{e(label)}</b>{star}", f"<b>{e(job['title'])}</b>"]
+    lines = [f"<b>{e(PRIORITY.get(level, ''))}</b>", f"<i>{e(label)}</i>", "━━━━━━━━━━━━━━",
+             f"💼 <b>{e(job['title'])}</b>"]
     if job.get("company"):
-        lines.append(f"\U0001f3e2 {e(job['company'])}")
+        lines.append(f"🏢 {e(job['company'])}")
     if job.get("location"):
-        lines.append(f"\U0001f4cd {e(job['location'])}")
+        lines.append(f"📍 {e(job['location'])}")
     if job.get("closing"):
         lines.append(f"⏳ Closes: {e(job['closing'])}")
     if f:
-        lines.append(e(fit.fit_line(f)))
-    if level == "caution":
-        lines.append("🚧 May involve site visits, field work or shifts. Check the ad.")
-    lines.append(f"\U0001f517 <a href=\"{e(job['url'])}\">Open the job post ({e(job['source'])})</a>")
-    return "\n".join(lines)
+        lines.append("")
+        lines.append(match_badge(f))
+        if f.get("why"):
+            lines.append(f"✅ {e(f['why'])}")
+        if f.get("gap"):
+            lines.append(f"⚠️ {e(f['gap'])}")
+    lines.append("")
+    lines.append(f"🔗 <a href=\"{e(job['url'])}\">Open the job post ({e(job['source'])})</a>")
+    return chr(10).join(lines)
 
 
 # ---------- state ----------
