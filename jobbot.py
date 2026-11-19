@@ -689,9 +689,10 @@ def run(dry=False):
                 log(f"{prof.key}: dropped broad role, ad does not match ({f['fit']}, {f['by']}) {j['title']} | {j.get('company')}")
                 continue
             ai, wk = f["by"] == "AI", f["by"] == "keywords"
-            if (lvl in ("general", "caution") and ((ai and f["fit"] <= 3) or
-                                                   (wk and len(it[1] or "") > 300 and f["why"].startswith("title match only")))
-                    or (lvl in ("strong", "top") and ai and f["fit"] <= 1)):
+            weak_general = lvl in ("general", "caution") and (
+                (ai and f["fit"] <= 4) or (wk and f["why"].startswith("title match only")))
+            mismatch = lvl in ("strong", "top") and ai and f["fit"] <= 1
+            if weak_general or mismatch:
                 log(f"{prof.key}: dropped, ad does not match ({f['fit']}) {j['title']} | {j.get('company')}")
                 continue
             send(fmt(j, lvl, prof.label, f), prof.send_to)
